@@ -2,9 +2,9 @@ import CustomSignUp from "@/app/components/auth/CustomSignUp";
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen flex">
-      {/* Branding Section */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#c0ff99] p-12 items-center justify-center relative">
+    <div className="flex h-screen">
+      {/* Branding Section - Fixed */}
+      <div className="hidden lg:flex lg:w-1/2 bg-[#c0ff99] p-12 items-center justify-center fixed left-0 h-full">
         <div className="max-w-md">
           {/* Logo */}
           <div className="mb-8">
@@ -34,12 +34,17 @@ export default function SignUpPage() {
         </div>
       </div>
 
-      {/* Sign Up Section */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold mb-2">Register</h1>
-          <p className="text-gray-600 mb-8">Complete your registration easily.</p>
-          <CustomSignUp />
+      {/* Spacer div to push content to the right on large screens */}
+      <div className="hidden lg:block lg:w-1/2"></div>
+
+      {/* Sign Up Section - Scrollable */}
+      <div className="flex-1 min-h-screen overflow-y-auto mt-[10vh]">
+        <div className="flex items-center justify-center p-8">
+          <div className="w-full max-w-md">
+            <h1 className="text-3xl font-bold mb-2">Register</h1>
+            <p className="text-gray-600 mb-8">Complete your registration easily.</p>
+            <CustomSignUp />
+          </div>
         </div>
       </div>
     </div>
