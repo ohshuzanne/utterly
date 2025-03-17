@@ -1,0 +1,13 @@
+#CONTEXT ABOUT THE PROJECT:
+
+i'm making a  web-based application that allows:
+
+1. users to upload their chatbot API 
+2. access a "drag n drop" schema where they can create questions and put in their ideal/expected answer
+3. start the workflow
+4. allow the chatbot to be tested on 30 different iterations of the same question in the workflow, coming up with a final report on accuracy, as well as point out inaccuracies that can be concerning/instances of hallucination
+
+#STACK
+Frontend - Next.js, React, Tailwind CSS, Typescript, shadcn/ui and Aceternity. Any relevant libraries
+Backend - Python (I need to create my own API to test the chatbot), any other relevant tools
+DB - Prisma PostgreSQL
