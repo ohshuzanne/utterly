@@ -1,4 +1,5 @@
 import { SignIn } from "@clerk/nextjs";
+import Link from "next/link";
 
 export default function LoginPage() {
   return (
@@ -40,6 +41,17 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           <h1 className="text-3xl font-bold mb-2">Login</h1>
           <p className="text-gray-600 mb-8">Login to continue testing.</p>
+          
+          {/* Temporary Development Link */}
+          <div className="mb-4">
+            <Link 
+              href="/temp-login"
+              className="w-full block text-center p-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-700"
+            >
+              Temporary Dashboard Access (Dev Only)
+            </Link>
+          </div>
+
           <SignIn appearance={{
             elements: {
               rootBox: "mx-auto w-full max-w-md",
