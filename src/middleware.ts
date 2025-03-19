@@ -1,17 +1,37 @@
-import { authMiddleware } from "@clerk/nextjs";
+import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-// This example protects all routes including api/trpc routes
-// Please edit this to allow other routes to be public as needed.
-// See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your middleware
-export default authMiddleware({
-  // Add /dashboard to public routes temporarily during development
-  publicRoutes: ["/", "/login", "/sign-up", "/temp-login", "/dashboard"],
-  async beforeAuth(req) {
-    // Execute any code before authentication runs
-    return;
-  },
-});
+// Define public routes that don't require authentication
+const publicRoutes = ['/login', '/signup', '/api/auth'];
+
+export async function middleware(request: NextRequest) {
+  // Check if the path is a public route
+  const isPublicRoute = publicRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  );
+
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+
+  // Get the session token
+  const token = await getToken({ 
+    req: request, 
+    secret: process.env.NEXTAUTH_SECRET 
+  });
+
+  // If there's no token and the route requires authentication, redirect to login
+  if (!token) {
+    const url = new URL('/login', request.url);
+    return NextResponse.redirect(url);
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
-  matcher: ['/((?!.+\\.[\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.svg$).*)',
+  ],
 }; 
