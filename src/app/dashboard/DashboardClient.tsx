@@ -1,14 +1,12 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Sidebar } from "@/app/components/layout/Sidebar";
 import { Header } from "@/app/components/layout/Header";
 import { WorkflowCard } from "@/app/components/dashboard/WorkflowCard";
 import { TestingTraffic } from "@/app/components/dashboard/TestingTraffic";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Plus } from "lucide-react";
 
 // Static data that won't cause hydration issues
 const recentWorkflows = [
@@ -29,7 +27,6 @@ interface DashboardClientProps {
 }
 
 export function DashboardClient({ firstName }: DashboardClientProps) {
-  const router = useRouter();
   const [trafficData, setTrafficData] = useState<number[]>([]);
 
   // Generate random data after component mounts
@@ -40,65 +37,62 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
     setTrafficData(data);
   }, []);
 
-  const handleLogout = async () => {
-    await signOut({ redirect: false });
-    router.push('/login');
-  };
-
   return (
     <div className="min-h-screen bg-white">
       <Sidebar />
       
       <div className="ml-[60px]">
-        <Header />
+        <Header userName={firstName} />
         
         <main className="p-6">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold">Welcome back, {firstName}!</h1>
-            <Button 
-              onClick={handleLogout}
-              variant="outline"
-              className="text-gray-600 hover:text-gray-800"
-            >
-              Logout
-            </Button>
-          </div>
-
           <div className="mb-8">
-            <h2 className="text-lg font-semibold mb-4">Recent workflows and models uploaded</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h2 className="text-gray-700 font-medium mb-4 text-2xl">Recent workflows and models uploaded</h2>
+            <div className="flex overflow-x-auto pb-4 gap-4 hide-scrollbar">
               {recentWorkflows.map((workflow, index) => (
-                <WorkflowCard
-                  key={index}
-                  title={workflow.title}
-                  date={workflow.date}
-                  accuracy={workflow.accuracy}
-                  consistency={workflow.consistency}
-                  onAnalyze={workflow.accuracy ? undefined : () => {}}
-                />
+                <div key={index} className="min-w-[400px] w-[400px] min-h-[200px] h-[200px] flex-shrink-0">
+                  <WorkflowCard
+                    title={workflow.title}
+                    date={workflow.date}
+                    accuracy={workflow.accuracy}
+                    consistency={workflow.consistency}
+                    onAnalyze={workflow.accuracy ? undefined : () => {}}
+                  />
+                </div>
               ))}
-              <WorkflowCard
-                title="New Test"
-                date=""
-                variant="new"
-              />
+              <div className="min-w-[280px] w-[280px] flex-shrink-0">
+                <div className="bg-gray-100 rounded-lg p-6 h-full flex flex-col items-center justify-center border border-dashed border-gray-300 hover:bg-gray-200 transition-colors cursor-pointer">
+                  <Plus className="w-10 h-10 text-gray-500 mb-2" />
+                  <p className="text-gray-700 font-medium">Start a new test</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="mb-8">
+          <div className="mb-8 bg-white rounded-lg p-6 border">
             {/* Only render chart when data is available */}
             {trafficData.length > 0 && (
-              <TestingTraffic data={trafficData} />
+              <div>
+                <h3 className="text-gray-700 mb-4">Testing Traffic</h3>
+                <div className="text-3xl font-bold mb-4">612</div>
+                <TestingTraffic data={trafficData} />
+              </div>
             )}
           </div>
 
-          <div className="bg-gray-900 text-white rounded-lg p-6 flex items-center justify-between">
-            <div>
+          <div className="bg-gray-900 text-white rounded-lg p-6 flex items-center justify-between overflow-hidden relative">
+            <div className="z-10">
               <h2 className="text-xl font-bold mb-2">Find out how to best maximize Utterly</h2>
               <p className="text-gray-300">Learn more about our features and best practices</p>
             </div>
-            <Button asChild variant="secondary" className="bg-purple-600 hover:bg-purple-500">
-              <Link href="/learn-more">Read More</Link>
+            <div className="absolute top-0 right-0 w-1/3 h-full">
+              <div className="absolute right-0 top-0 grid grid-cols-5 grid-rows-5 gap-2 opacity-30">
+                {Array.from({ length: 25 }).map((_, i) => (
+                  <div key={i} className="w-4 h-4 rounded-full bg-white"></div>
+                ))}
+              </div>
+            </div>
+            <Button className="bg-purple-600 hover:bg-purple-500 z-10">
+              Read More
             </Button>
           </div>
         </main>

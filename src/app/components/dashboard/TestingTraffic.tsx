@@ -8,22 +8,22 @@ export function TestingTraffic({ data }: TestingTrafficProps) {
   const maxValue = Math.max(...data);
   
   return (
-    <div className="p-6 border rounded-lg">
-      <div className="mb-4">
-        <h3 className="text-sm text-gray-600">Testing Traffic</h3>
-        <p className="text-2xl font-bold">{data.reduce((a, b) => a + b, 0)}</p>
-      </div>
-      
+    <div className="w-full">
       <div className="h-32 flex items-end gap-1">
         {data.map((value, index) => (
           <div
             key={index}
-            className="flex-1 bg-teal-500 rounded-t transition-all duration-300 hover:opacity-80"
-            style={{
-              height: `${(value / maxValue) * 100}%`,
-              opacity: value > 0 ? (value / maxValue) * 0.3 + 0.7 : 0.2,
-            }}
-          />
+            className="flex-1 transition-all duration-300 hover:opacity-80 relative group"
+          >
+            <div 
+              className="absolute bottom-0 w-full rounded-full"
+              style={{
+                height: `${(value / maxValue) * 100}%`,
+                backgroundColor: value > 15 ? '#0d9488' : '#99f6e4',
+                opacity: value > 15 ? 1 : 0.7,
+              }}
+            />
+          </div>
         ))}
       </div>
     </div>

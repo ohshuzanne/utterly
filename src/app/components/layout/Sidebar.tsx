@@ -18,7 +18,7 @@ export function Sidebar() {
     <div className="fixed left-0 h-full w-[60px] bg-gray-900 flex flex-col items-center py-4">
       {/* Logo */}
       <Link href="/dashboard" className="mb-8">
-        <div className="bg-white text-gray-900 w-8 h-8 rounded flex items-center justify-center text-lg font-bold">
+        <div className="bg-white text-gray-900 w-10 h-10 rounded flex items-center justify-center text-lg font-bold">
           U.
         </div>
       </Link>
@@ -33,14 +33,14 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-2 ${
                 isActive 
-                  ? 'bg-purple-600 text-white' 
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                  ? 'text-[#c0ff99]' 
+                  : 'text-gray-400 hover:text-white'
               }`}
               title={item.label}
             >
-              <Icon size={20} />
+              <Icon size={24} />
             </Link>
           );
         })}
@@ -50,14 +50,14 @@ export function Sidebar() {
       <div className="mt-auto">
         <Link
           href="/dashboard/settings"
-          className={`p-2 rounded-lg transition-colors ${
+          className={`p-2 ${
             pathname === '/dashboard/settings'
-              ? 'bg-purple-600 text-white'
-              : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              ? 'text-[#c0ff99]'
+              : 'text-gray-400 hover:text-white'
           }`}
           title="Settings"
         >
-          <Settings size={20} />
+          <Settings size={24} />
         </Link>
       </div>
     </div>
