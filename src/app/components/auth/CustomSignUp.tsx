@@ -213,7 +213,7 @@ export default function CustomSignUp() {
         </AuthButton>
       </form>
 
-      <div className="text-center mt-4 text-sm">
+      <div className="mt-6 text-center text-gray-600 text-sm">
         Already a user? <Link href="/login" className="text-purple-600 hover:text-purple-500">Login here</Link>.
       </div>
     </div>

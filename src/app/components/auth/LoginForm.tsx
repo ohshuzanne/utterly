@@ -75,12 +75,12 @@ export default function LoginForm() {
         Login
       </Button>
 
-      <p className="text-center text-sm text-gray-600">
-        Not a user? {' '}
-        <Link href="/signup" className="text-purple-600 hover:text-purple-500">
-          Sign up <span className="text-purple-600">here</span>
+      <div className="text-center mt-4 text-sm">
+        Don&apos;t have an account?{' '}
+        <Link href="/register" className="text-purple-600 hover:text-purple-500">
+          Sign up
         </Link>
-      </p>
+      </div>
     </form>
   );
 } 

@@ -11,6 +11,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Utterly - Chatbot Testing Made Simple",
   description: "Test your chatbots with ease using Utterly",
+  icons: {
+    icon: '/15.svg',
+  },
 };
 
 export default function RootLayout({
