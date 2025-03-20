@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { MessageSquare, HelpCircle, Clock, PlayCircle, Plus, Minus, Trash2 } from 'lucide-react';
+import { MessageSquare, HelpCircle, Clock, PlayCircle, Plus, Minus, Trash2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Select,
   SelectContent,
@@ -19,11 +20,44 @@ interface WorkflowItem {
   delay?: number;
 }
 
+interface Chatbot {
+  id: string;
+  name: string;
+}
+
 export default function WorkflowBuilder() {
+  const { toast } = useToast();
   const [selectedApi, setSelectedApi] = useState('');
   const [workflowItems, setWorkflowItems] = useState<WorkflowItem[]>([]);
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
+  const [chatbots, setChatbots] = useState<Chatbot[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchChatbots = async () => {
+      try {
+        const response = await fetch('/api/chatbots');
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch chatbots');
+        }
+
+        setChatbots(data.chatbots);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to fetch chatbots",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchChatbots();
+  }, [toast]);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) {
@@ -86,12 +120,29 @@ export default function WorkflowBuilder() {
           <div className="w-6 h-6 bg-[#c0ff99] rounded flex items-center justify-center">
             ⚡
           </div>
-          <Select value={selectedApi} onValueChange={setSelectedApi}>
+          <Select 
+            value={selectedApi} 
+            onValueChange={setSelectedApi}
+            disabled={isLoading || chatbots.length === 0}
+          >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select API" />
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading chatbots...</span>
+                </div>
+              ) : chatbots.length === 0 ? (
+                <span className="text-gray-500">No chatbots available</span>
+              ) : (
+                <SelectValue placeholder="Select a chatbot" />
+              )}
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="apu">APU Customer Support Chat</SelectItem>
+              {chatbots.map((chatbot) => (
+                <SelectItem key={chatbot.id} value={chatbot.id}>
+                  {chatbot.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
