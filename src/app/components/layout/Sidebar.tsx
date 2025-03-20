@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Workflow, BarChart2, MessageSquare, Settings } from 'lucide-react';
+import { Home, Workflow, BarChart2, Settings, Cloud } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -12,8 +12,8 @@ import {
 
 const menuItems = [
   { icon: Home, label: 'Home', href: '/dashboard' },
+  { icon: Cloud, label: 'Chatbot', href: '/dashboard/chatbot' },
   { icon: Workflow, label: 'Workflow', href: '/dashboard/workflow' },
-  { icon: MessageSquare, label: 'Chat Tests', href: '/dashboard/tests' },
   { icon: BarChart2, label: 'Analytics', href: '/dashboard/analytics' },
 ];
 
