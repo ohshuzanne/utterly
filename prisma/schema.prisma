@@ -28,6 +28,7 @@ model User {
   accounts        Account[]
   sessions        Session[]
   chatbots        Chatbot[]
+  projects        Project[]
 }
 
 model Account {
@@ -76,6 +77,7 @@ model Chatbot {
   userId      String
   testCases   TestCase[]
   testResults TestResult[]
+  workflows   Workflow[]
 }
 
 model TestCase {
@@ -99,6 +101,29 @@ model TestResult {
   chatbotId    String
   results      Json      // Detailed test results including accuracy scores
   status       String    // SUCCESS, FAILED, ERROR
+}
+
+model Project {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  workflows   Workflow[]
+}
+
+model Workflow {
+  id          String   @id @default(cuid())
+  name        String
+  items       Json     // Array of workflow items (intents, questions, delays, etc.)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  chatbot     Chatbot  @relation(fields: [chatbotId], references: [id])
+  chatbotId   String
 }
 
 // You might also want to add these models later:

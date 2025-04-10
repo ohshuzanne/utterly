@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { MessageSquare, HelpCircle, Clock, PlayCircle, Plus, Minus, Trash2, Loader2, X, CheckCircle } from 'lucide-react';
+import { MessageSquare, HelpCircle, Clock, PlayCircle, Plus, Minus, Trash2, Loader2, X, CheckCircle, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -15,6 +15,7 @@ import {
 import { Header } from '@/app/components/layout/Header';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Sidebar } from '@/app/components/layout/Sidebar';
 
 interface WorkflowItem {
   id: string;
@@ -32,9 +33,11 @@ interface Chatbot {
 
 interface WorkflowBuilderProps {
   firstName: string;
+  projectId?: string;
+  projectName?: string;
 }
 
-export default function WorkflowBuilder({ firstName }: WorkflowBuilderProps) {
+export default function WorkflowBuilder({ firstName, projectId, projectName }: WorkflowBuilderProps) {
   const { toast } = useToast();
   const [selectedApi, setSelectedApi] = useState('');
   const [workflowItems, setWorkflowItems] = useState<WorkflowItem[]>([]);
@@ -42,6 +45,10 @@ export default function WorkflowBuilder({ firstName }: WorkflowBuilderProps) {
   const [zoom, setZoom] = useState(1);
   const [chatbots, setChatbots] = useState<Chatbot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingWorkflow, setIsLoadingWorkflow] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [workflowName, setWorkflowName] = useState('New Workflow');
+  const [workflowId, setWorkflowId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchChatbots = async () => {
@@ -67,6 +74,45 @@ export default function WorkflowBuilder({ firstName }: WorkflowBuilderProps) {
 
     fetchChatbots();
   }, [toast]);
+
+  useEffect(() => {
+    const fetchWorkflow = async () => {
+      if (!projectId) return;
+      
+      setIsLoadingWorkflow(true);
+      try {
+        const response = await fetch(`/api/projects/${projectId}/workflows`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch workflow');
+        }
+        
+        const data = await response.json();
+        if (data.workflows && data.workflows.length > 0) {
+          // If there's an existing workflow, load its items
+          const workflow = data.workflows[0];
+          if (workflow.items) {
+            setWorkflowItems(workflow.items as WorkflowItem[]);
+            setWorkflowId(workflow.id);
+            setWorkflowName(workflow.name || 'New Workflow');
+            if (workflow.chatbotId) {
+              setSelectedApi(workflow.chatbotId);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error loading workflow:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load workflow data",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingWorkflow(false);
+      }
+    };
+
+    fetchWorkflow();
+  }, [projectId, toast]);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) {
@@ -163,12 +209,72 @@ export default function WorkflowBuilder({ firstName }: WorkflowBuilderProps) {
     }
   };
 
+  const saveWorkflow = async () => {
+    if (!projectId || !selectedApi) {
+      toast({
+        title: "Cannot Save",
+        description: "Please select a chatbot before saving",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const endpoint = `/api/projects/${projectId}/workflows`;
+      const method = workflowId ? 'PUT' : 'POST';
+      const url = workflowId ? `${endpoint}/${workflowId}` : endpoint;
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: workflowName,
+          items: workflowItems,
+          chatbotId: selectedApi
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save workflow');
+      }
+
+      const data = await response.json();
+      
+      // Update workflowId if this was a new workflow
+      if (!workflowId) {
+        setWorkflowId(data.workflow.id);
+      }
+
+      toast({
+        title: "Success",
+        description: "Workflow saved successfully",
+        variant: "default",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save workflow",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex">
+      <Sidebar />
+      <div className="ml-[60px] flex flex-col flex-1 overflow-hidden">
       <Header userName={firstName} />
       <div className="flex flex-1">
+        
+        
         {/* Left Sidebar - Node Types */}
-        <div className="w-[240px] bg-white border-r border-gray-200 p-4">
+        <div className="w-[240px] bg-white border-r border-gray-200 p-4 flex flex-col">
           <div className="flex items-center gap-2 mb-6">
             <div className="w-6 h-6 bg-[#c0ff99] rounded flex items-center justify-center">
               ⚡
@@ -200,7 +306,7 @@ export default function WorkflowBuilder({ firstName }: WorkflowBuilderProps) {
             </Select>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1">
             <div 
               className="p-4 bg-gray-50 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-gray-100"
               onClick={() => addItem('intent')}
@@ -229,6 +335,37 @@ export default function WorkflowBuilder({ firstName }: WorkflowBuilderProps) {
               <PlayCircle className="w-6 h-6" />
               <span>End Conversation</span>
             </div>
+          </div>
+          
+          {/* Save Workflow Button */}
+          <div className="mt-6">
+            <div className="mb-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Workflow Name
+              </label>
+              <Input
+                value={workflowName}
+                onChange={(e) => setWorkflowName(e.target.value)}
+                placeholder="Enter workflow name"
+              />
+            </div>
+            <Button 
+              className="w-full flex items-center justify-center gap-2" 
+              onClick={saveWorkflow}
+              disabled={isSaving || !selectedApi}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  <span>Save Workflow</span>
+                </>
+              )}
+            </Button>
           </div>
         </div>
 
@@ -263,6 +400,13 @@ export default function WorkflowBuilder({ firstName }: WorkflowBuilderProps) {
             </Button>
           </div>
 
+          {/* Project Title */}
+          {projectName && (
+            <div className="absolute top-4 left-4 z-10">
+              <h2 className="text-xl font-bold">{projectName}</h2>
+            </div>
+          )}
+
           {/* Workflow Canvas */}
           <div 
             className="h-full w-full overflow-auto p-8"
@@ -271,76 +415,82 @@ export default function WorkflowBuilder({ firstName }: WorkflowBuilderProps) {
               backgroundSize: '20px 20px',
             }}
           >
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <Droppable droppableId="workflow">
-                {(provided) => (
-                  <div
-                    {...provided.droppableProps}
-                    ref={provided.innerRef}
-                    className="space-y-4 flex flex-col items-center min-h-[200px] origin-top"
-                    style={{
-                      transform: `scale(${zoom})`,
-                      transition: 'transform 0.2s ease-out'
-                    }}
-                  >
-                    {workflowItems.map((item, index) => (
-                      <Draggable key={item.id} draggableId={item.id} index={index}>
-                        {(provided) => (
-                          <>
-                            {index > 0 && (
-                              <div className="w-px h-8 bg-gray-300" />
-                            )}
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              className={`w-[400px] rounded-lg p-4 flex items-start gap-4 group ${
-                                item.type === 'question' ? 'bg-[#c0ff99]' : 'bg-[#f3e8ff]'
-                              } ${selectedItem?.id === item.id ? 'ring-1 ring-purple-400' : ''}`}
-                              onClick={() => handleCardClick(item)}
-                            >
-                              <div className="text-gray-700">
-                                {getItemIcon(item.type)}
-                              </div>
-                              <div className="flex-1">
-                                <div className="cursor-pointer">
-                                  {item.content || `Click to add ${item.type} content`}
-                                </div>
-                                {item.type === 'question' && (
-                                  <div className="mt-2 text-sm text-gray-600 flex flex-wrap items-center gap-2">
-                                    {item.expectedAnswer && (
-                                      <div className="flex items-center gap-1">
-                                        <CheckCircle className="w-3 h-3" />
-                                        <span>Expected answer added</span>
-                                      </div>
-                                    )}
-                                    {item.utteranceCount && (
-                                      <div className="flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full text-xs">
-                                        <span>{item.utteranceCount} utterances</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteItem(item.id);
-                                }}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-black/5 rounded"
+            {isLoadingWorkflow ? (
+              <div className="flex justify-center items-center h-full">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              </div>
+            ) : (
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="workflow">
+                  {(provided) => (
+                    <div
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="space-y-4 flex flex-col items-center min-h-[200px] origin-top"
+                      style={{
+                        transform: `scale(${zoom})`,
+                        transition: 'transform 0.2s ease-out'
+                      }}
+                    >
+                      {workflowItems.map((item, index) => (
+                        <Draggable key={item.id} draggableId={item.id} index={index}>
+                          {(provided) => (
+                            <>
+                              {index > 0 && (
+                                <div className="w-px h-8 bg-gray-300" />
+                              )}
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className={`w-[400px] rounded-lg p-4 flex items-start gap-4 group ${
+                                  item.type === 'question' ? 'bg-[#c0ff99]' : 'bg-[#f3e8ff]'
+                                } ${selectedItem?.id === item.id ? 'ring-1 ring-purple-400' : ''}`}
+                                onClick={() => handleCardClick(item)}
                               >
-                                <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </DragDropContext>
+                                <div className="text-gray-700">
+                                  {getItemIcon(item.type)}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="cursor-pointer">
+                                    {item.content || `Click to add ${item.type} content`}
+                                  </div>
+                                  {item.type === 'question' && (
+                                    <div className="mt-2 text-sm text-gray-600 flex flex-wrap items-center gap-2">
+                                      {item.expectedAnswer && (
+                                        <div className="flex items-center gap-1">
+                                          <CheckCircle className="w-3 h-3" />
+                                          <span>Expected answer added</span>
+                                        </div>
+                                      )}
+                                      {item.utteranceCount && (
+                                        <div className="flex items-center gap-1 bg-gray-100 px-2 py-0.5 rounded-full text-xs">
+                                          <span>{item.utteranceCount} utterances</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteItem(item.id);
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-black/5 rounded"
+                                >
+                                  <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+            )}
           </div>
         </div>
         
@@ -473,6 +623,7 @@ export default function WorkflowBuilder({ firstName }: WorkflowBuilderProps) {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 } 
