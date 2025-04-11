@@ -10,7 +10,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, apiKey } = await req.json();
+    const { 
+      name, 
+      apiKey, 
+      apiEndpoint, 
+      modelName, 
+      temperature, 
+      maxTokens, 
+      topP, 
+      frequencyPenalty, 
+      presencePenalty, 
+      stopSequences 
+    } = await req.json();
 
     if (!name || !apiKey) {
       return NextResponse.json(
@@ -24,8 +35,15 @@ export async function POST(req: Request) {
       data: {
         name,
         apiKey,
-        apiEndpoint: 'https://api.openai.com/v1/chat/completions', // Default endpoint, can be made configurable later
-        userId: session.user.id,
+        apiEndpoint: apiEndpoint || 'https://api.openai.com/v1/chat/completions',
+        modelName,
+        temperature: temperature ? parseFloat(temperature) : 0.7,
+        maxTokens: maxTokens ? parseInt(maxTokens) : 1000,
+        topP: topP ? parseFloat(topP) : 1.0,
+        frequencyPenalty: frequencyPenalty ? parseFloat(frequencyPenalty) : 0.0,
+        presencePenalty: presencePenalty ? parseFloat(presencePenalty) : 0.0,
+        stopSequences,
+        userId: session.user.id
       },
     });
 

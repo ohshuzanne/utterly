@@ -52,7 +52,18 @@ export function ChatbotUpload({ firstName }: ChatbotUploadProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          apiKey: formData.apiKey,
+          apiEndpoint: formData.apiEndpoint,
+          modelName: formData.modelName,
+          temperature: formData.temperature,
+          maxTokens: formData.maxTokens,
+          topP: formData.topP,
+          frequencyPenalty: formData.frequencyPenalty,
+          presencePenalty: formData.presencePenalty,
+          stopSequences: formData.stopSequences,
+        }),
       });
 
       const data = await response.json();
