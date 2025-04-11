@@ -24,12 +24,21 @@ export function ChatbotUpload({ firstName }: ChatbotUploadProps) {
   const [formData, setFormData] = useState({
     name: '',
     apiKey: '',
+    apiEndpoint: '',
+    modelName: '',
+    temperature: 0.7,
+    maxTokens: 1000,
+    topP: 1.0,
+    frequencyPenalty: 0.0,
+    presencePenalty: 0.0,
+    stopSequences: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: type === 'number' ? parseFloat(value) : value
     }));
   };
 
@@ -84,8 +93,7 @@ export function ChatbotUpload({ firstName }: ChatbotUploadProps) {
                   What is this for?
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Enter your chatbot&apos;s API key so you can keep it in your account and use it for testing purposes!
-                    After it has been uploaded successfully, you can start using the workflow pages.</p>
+                  <p>Enter your chatbot&apos;s API configuration so you can test it with different workflows and generate comprehensive reports.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -117,21 +125,152 @@ export function ChatbotUpload({ firstName }: ChatbotUploadProps) {
 
                 <div className="space-y-2">
                   <label htmlFor="apiKey" className="block text-sm font-medium text-gray-700">
-                    Chatbot API Key
+                    API Key
                   </label>
                   <Input
                     id="apiKey"
                     name="apiKey"
-                    type="text"
+                    type="password"
                     value={formData.apiKey}
                     onChange={handleChange}
                     placeholder="Enter your API key"
                     className="w-full rounded-lg border-gray-200"
                     required
                   />
-                  <p className="text-sm text-gray-500">
-                    Please enter the API key for the chatbot you want to test.
-                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="apiEndpoint" className="block text-sm font-medium text-gray-700">
+                    API Endpoint
+                  </label>
+                  <Input
+                    id="apiEndpoint"
+                    name="apiEndpoint"
+                    type="text"
+                    value={formData.apiEndpoint}
+                    onChange={handleChange}
+                    placeholder="https://api.example.com/v1/chat"
+                    className="w-full rounded-lg border-gray-200"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="modelName" className="block text-sm font-medium text-gray-700">
+                    Model Name
+                  </label>
+                  <Input
+                    id="modelName"
+                    name="modelName"
+                    type="text"
+                    value={formData.modelName}
+                    onChange={handleChange}
+                    placeholder="e.g., gpt-4, claude-2, etc."
+                    className="w-full rounded-lg border-gray-200"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="temperature" className="block text-sm font-medium text-gray-700">
+                      Temperature
+                    </label>
+                    <Input
+                      id="temperature"
+                      name="temperature"
+                      type="number"
+                      min="0"
+                      max="2"
+                      step="0.1"
+                      value={formData.temperature}
+                      onChange={handleChange}
+                      className="w-full rounded-lg border-gray-200"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="maxTokens" className="block text-sm font-medium text-gray-700">
+                      Max Tokens
+                    </label>
+                    <Input
+                      id="maxTokens"
+                      name="maxTokens"
+                      type="number"
+                      min="1"
+                      value={formData.maxTokens}
+                      onChange={handleChange}
+                      className="w-full rounded-lg border-gray-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="topP" className="block text-sm font-medium text-gray-700">
+                      Top P
+                    </label>
+                    <Input
+                      id="topP"
+                      name="topP"
+                      type="number"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={formData.topP}
+                      onChange={handleChange}
+                      className="w-full rounded-lg border-gray-200"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="frequencyPenalty" className="block text-sm font-medium text-gray-700">
+                      Frequency Penalty
+                    </label>
+                    <Input
+                      id="frequencyPenalty"
+                      name="frequencyPenalty"
+                      type="number"
+                      min="-2"
+                      max="2"
+                      step="0.1"
+                      value={formData.frequencyPenalty}
+                      onChange={handleChange}
+                      className="w-full rounded-lg border-gray-200"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor="presencePenalty" className="block text-sm font-medium text-gray-700">
+                      Presence Penalty
+                    </label>
+                    <Input
+                      id="presencePenalty"
+                      name="presencePenalty"
+                      type="number"
+                      min="-2"
+                      max="2"
+                      step="0.1"
+                      value={formData.presencePenalty}
+                      onChange={handleChange}
+                      className="w-full rounded-lg border-gray-200"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="stopSequences" className="block text-sm font-medium text-gray-700">
+                      Stop Sequences
+                    </label>
+                    <Input
+                      id="stopSequences"
+                      name="stopSequences"
+                      type="text"
+                      value={formData.stopSequences}
+                      onChange={handleChange}
+                      placeholder="e.g., \n, ###"
+                      className="w-full rounded-lg border-gray-200"
+                    />
+                  </div>
                 </div>
               </div>
 

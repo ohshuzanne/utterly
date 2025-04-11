@@ -74,7 +74,7 @@ export default function ProjectsPage() {
       });
       return;
     }
-
+  
     try {
       const response = await fetch('/api/projects', {
         method: 'POST',
@@ -86,21 +86,26 @@ export default function ProjectsPage() {
           description: newProjectDescription,
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to create project');
       }
-
+  
       const data = await response.json();
-      setProjects([...projects, data.project]);
+      const newProject = data.project;
+  
+      setProjects([...projects, newProject]);
       setIsCreating(false);
       setNewProjectName('');
       setNewProjectDescription('');
-      
+  
       toast({
         title: 'Success',
         description: 'Project created successfully',
       });
+  
+      window.location.href = `/dashboard/workflow`;
+  
     } catch {
       toast({
         title: 'Error',
@@ -109,6 +114,7 @@ export default function ProjectsPage() {
       });
     }
   };
+  
 
   const handleDeleteProject = async (id: string) => {
     if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {

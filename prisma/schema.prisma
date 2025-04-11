@@ -17,18 +17,17 @@ model User {
   id              String    @id @default(cuid())
   email           String    @unique
   password        String
-  firstName       String?
-  lastName        String?
-  position        String?   // Job Title
+  firstName       String
+  lastName        String
+  position        String?
   company         String?
-  accountPurpose  String?   // What are you using this account for?
+  accountPurpose  String?
   experienceLevel String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  projects        Project[]
   accounts        Account[]
   sessions        Session[]
-  chatbots        Chatbot[]
-  projects        Project[]
 }
 
 model Account {
@@ -66,64 +65,63 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Chatbot {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  name        String
-  apiEndpoint String
-  apiKey      String // Encrypted
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  testCases   TestCase[]
-  testResults TestResult[]
-  workflows   Workflow[]
-}
-
-model TestCase {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  name        String
-  description String?
-  questions   Json     // Array of questions and expected answers
-  chatbot     Chatbot  @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
-  chatbotId   String
-  results     TestResult[]
-}
-
-model TestResult {
-  id           String    @id @default(cuid())
-  createdAt    DateTime  @default(now())
-  testCase     TestCase  @relation(fields: [testCaseId], references: [id])
-  testCaseId   String
-  chatbot      Chatbot   @relation(fields: [chatbotId], references: [id])
-  chatbotId    String
-  results      Json      // Detailed test results including accuracy scores
-  status       String    // SUCCESS, FAILED, ERROR
-}
-
 model Project {
   id          String     @id @default(cuid())
   name        String
   description String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
+  user        User       @relation(fields: [userId], references: [id])
+  chatbots    Chatbot[]
+  workflows   Workflow[]
+  reports     Report[]
+}
+
+model Chatbot {
+  id          String    @id @default(cuid())
+  name        String
+  apiKey      String
+  apiEndpoint String?
+  modelName   String?
+  temperature Float?    @default(0.7)
+  maxTokens   Int?      @default(1000)
+  topP        Float?    @default(1.0)
+  frequencyPenalty Float? @default(0.0)
+  presencePenalty  Float? @default(0.0)
+  stopSequences    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
   workflows   Workflow[]
 }
 
 model Workflow {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  items       Json     // Array of workflow items (intents, questions, delays, etc.)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  items       Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   projectId   String
-  chatbot     Chatbot  @relation(fields: [chatbotId], references: [id])
+  project     Project   @relation(fields: [projectId], references: [id])
   chatbotId   String
+  chatbot     Chatbot   @relation(fields: [chatbotId], references: [id])
+  reports     Report[]
+}
+
+model Report {
+  id          String    @id @default(cuid())
+  name        String
+  overallScore Float
+  metrics     Json
+  details     Json
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+  workflowId  String
+  workflow    Workflow  @relation(fields: [workflowId], references: [id])
 }
 
 // You might also want to add these models later:
