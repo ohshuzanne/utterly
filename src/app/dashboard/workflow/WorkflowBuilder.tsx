@@ -49,6 +49,7 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
   const [isSaving, setIsSaving] = useState(false);
   const [workflowName, setWorkflowName] = useState('New Workflow');
   const [workflowId, setWorkflowId] = useState<string | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
 
   useEffect(() => {
     const fetchChatbots = async () => {
@@ -265,6 +266,58 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
     }
   };
 
+  const executeWorkflow = async () => {
+    if (!selectedApi || !workflowId) {
+      toast({
+        title: "Cannot Execute",
+        description: "Please select a chatbot and save the workflow before executing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExecuting(true);
+    try {
+      const response = await fetch(`/api/workflows/${workflowId}/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chatbotId: selectedApi,
+          items: workflowItems
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to execute workflow');
+      }
+
+      const { reportId } = await response.json();
+      
+      toast({
+        title: "Success!",
+        description: "Workflow executed successfully. Generating report...",
+        variant: "default",
+      });
+
+      // Wait a moment to show the success message
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Redirect to results page with the report ID
+      window.location.href = `/dashboard/workflow/${workflowId}/results?reportId=${reportId}`;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to execute workflow",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExecuting(false);
+    }
+  };
+
   return (
     <div className="h-screen flex">
       <Sidebar />
@@ -395,8 +448,15 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
               variant="ghost"
               size="icon"
               className="bg-gray-900 text-white hover:bg-gray-800"
+              onClick={executeWorkflow}
+              disabled={isExecuting}
+              title="Execute Workflow"
             >
-              <PlayCircle className="w-4 h-4" />
+              {isExecuting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <PlayCircle className="w-4 h-4" />
+              )}
             </Button>
           </div>
 

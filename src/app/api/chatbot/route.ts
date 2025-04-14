@@ -10,22 +10,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { 
-      name, 
-      apiKey, 
-      apiEndpoint, 
-      modelName, 
-      temperature, 
-      maxTokens, 
-      topP, 
-      frequencyPenalty, 
-      presencePenalty, 
-      stopSequences 
-    } = await req.json();
+    const { name, apiKey, apiEndpoint, modelName } = await req.json();
 
-    if (!name || !apiKey) {
+    if (!name || !apiKey || !apiEndpoint || !modelName) {
       return NextResponse.json(
-        { error: 'Name and API key are required' },
+        { error: 'Name, API key, API endpoint, and model name are required' },
         { status: 400 }
       );
     }
@@ -35,14 +24,8 @@ export async function POST(req: Request) {
       data: {
         name,
         apiKey,
-        apiEndpoint: apiEndpoint || 'https://api.openai.com/v1/chat/completions',
+        apiEndpoint,
         modelName,
-        temperature: temperature ? parseFloat(temperature) : 0.7,
-        maxTokens: maxTokens ? parseInt(maxTokens) : 1000,
-        topP: topP ? parseFloat(topP) : 1.0,
-        frequencyPenalty: frequencyPenalty ? parseFloat(frequencyPenalty) : 0.0,
-        presencePenalty: presencePenalty ? parseFloat(presencePenalty) : 0.0,
-        stopSequences,
         userId: session.user.id
       },
     });

@@ -67,64 +67,55 @@ model VerificationToken {
 }
 
 model Project {
-  id                String    @id @default(cuid())
-  name              String
+  id        String     @id @default(cuid())
+  name      String
   description       String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  userId            String
-  user              User      @relation(fields: [userId], references: [id])
-  chatbotId         String?
-  chatbot           Chatbot?  @relation(fields: [chatbotId], references: [id])
-  workflows         Workflow[]
-  reports           Report[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id])
+  userId    String
+  workflows Workflow[]
+  reports   Report[]
 }
 
 model Chatbot {
-  id                String    @id @default(cuid())
-  name              String
-  apiKey            String
-  apiEndpoint       String
-  modelName         String?
-  temperature       Float?
-  maxTokens         Int?
-  topP              Float?
-  frequencyPenalty  Float?
-  presencePenalty   Float?
-  stopSequences     String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  userId            String
-  user              User      @relation(fields: [userId], references: [id])
-  projects          Project[]
-  workflows         Workflow[]
+  id          String     @id @default(cuid())
+  name        String
+  apiKey      String
+  apiEndpoint String
+  modelName   String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String
+  workflows   Workflow[]
 }
 
 model Workflow {
-  id          String    @id @default(cuid())
-  name        String
-  items       Json
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
-  chatbotId   String
-  chatbot     Chatbot   @relation(fields: [chatbotId], references: [id])
-  reports     Report[]
+  id        String   @id @default(cuid())
+  name      String
+  items     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+  chatbot   Chatbot  @relation(fields: [chatbotId], references: [id])
+  chatbotId String
+  reports   Report[]
 }
 
 model Report {
-  id          String    @id @default(cuid())
-  name        String
+  id           String   @id @default(cuid())
+  name         String
   overallScore Float
-  metrics     Json
-  details     Json
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  projectId   String
-  project     Project   @relation(fields: [projectId], references: [id])
-  workflowId  String
-  workflow    Workflow  @relation(fields: [workflowId], references: [id])
+  metrics      Json
+  details      Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  project      Project  @relation(fields: [projectId], references: [id])
+  projectId    String
+  workflow     Workflow @relation(fields: [workflowId], references: [id])
+  workflowId   String
 }
 
 // You might also want to add these models later:
