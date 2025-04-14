@@ -4,6 +4,15 @@ import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { generateUtterances, analyzeResponses, generateReport, AnalysisResponse } from '@/lib/gemini';
 
+interface WorkflowItem {
+  id: string;
+  type: 'intent' | 'question' | 'delay' | 'end';
+  content?: string;
+  expectedAnswer?: string;
+  utteranceCount?: number;
+  delay?: number;
+}
+
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
@@ -23,10 +32,10 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const { chatbotId, items } = await request.json();
+    const { chatbotId } = await request.json();
     const workflowId = params.id;
 
-    // Get the workflow
+    // Get the workflow with its items
     const workflow = await prisma.workflow.findUnique({
       where: { 
         id: workflowId,
@@ -54,7 +63,9 @@ export async function POST(
 
     // Process each question in the workflow
     const analyses: AnalysisResponse[] = [];
-    for (const item of items) {
+    const workflowItems = JSON.parse(JSON.stringify(workflow.items)) as WorkflowItem[];
+
+    for (const item of workflowItems) {
       if (item.type === 'question' && item.content && item.expectedAnswer) {
         try {
           // Generate utterances for the question
@@ -129,6 +140,8 @@ export async function POST(
     const report = await generateReport(
       workflow.project.name,
       workflow.name,
+      chatbot.name || 'Unknown Chatbot',
+      chatbot.modelName || 'Unknown Model',
       analyses
     );
 

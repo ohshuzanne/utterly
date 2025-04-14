@@ -165,76 +165,167 @@ export async function analyzeResponses(
 }
 
 export interface ReportResponse {
-    overallScore: number;
-    metrics: {
-      accuracyByQuestion: { [question: string]: number };
-      consistencyScore: number;
-      averageResponseQuality: number;
-    };
-    details: {
-      summary: string;
-      recommendations: string[];
-      questionAnalysis: {
-        question: string;
-        accuracy: number;
-        comments: string;
+  overallScore: number;
+  metrics: {
+    accuracyByQuestion: {
+      question: string;
+      score: number;
+      utterances: {
+        text: string;
+        response: string;
+        similarityScore: number;
+        analysis: string;
       }[];
-      consistencyAnalysis: string;
-    };
-  }
-  
+      averageSimilarity: number;
+      consistencyScore: number;
+    }[];
+    averageResponseQuality: number;
+    consistencyScore: number;
+  };
+  details: {
+    summary: string;
+    recommendations: string[];
+    questionAnalysis: {
+      question: string;
+      accuracy: number;
+      consistency: number;
+      comments: string;
+      strengths: string[];
+      weaknesses: string[];
+    }[];
+    consistencyAnalysis: string;
+  };
+  metadata: {
+    chatbotName: string;
+    modelName: string;
+    projectName: string;
+    workflowName: string;
+    timestamp: string;
+  };
+}
 
-  export async function generateReport(
-    projectName: string,
-    workflowName: string,
-    analyses: AnalysisResponse[]
-  ): Promise<ReportResponse> {
-    try {
-      const prompt = `Generate a comprehensive test report for the chatbot testing session.
-      Project: ${projectName}
-      Workflow: ${workflowName}
-      Test Results: ${JSON.stringify(analyses)}
-  
-      Create a detailed report in JSON format with the following structure:
-      {
-        "overallScore": number (0-1),
-        "metrics": {
-          "accuracyByQuestion": object,
-          "consistencyScore": number,
-          "averageResponseQuality": number
-        },
-        "details": {
-          "summary": string,
-          "recommendations": string[],
-          "questionAnalysis": array,
-          "consistencyAnalysis": string
-        }
+export async function generateReport(
+  projectName: string,
+  workflowName: string,
+  chatbotName: string,
+  modelName: string,
+  analyses: AnalysisResponse[]
+): Promise<ReportResponse> {
+  try {
+    const prompt = `Generate a comprehensive test report for the chatbot testing session.
+    Project: ${projectName}
+    Workflow: ${workflowName}
+    Chatbot: ${chatbotName}
+    Model: ${modelName}
+    Test Results: ${JSON.stringify(analyses)}
+
+    Create a detailed report in JSON format with the following structure:
+    {
+      "overallScore": number (0-1, calculated as average of all question scores),
+      "metrics": {
+        "accuracyByQuestion": [
+          {
+            "question": string,
+            "score": number (0-1, based on accuracy and consistency),
+            "utterances": [
+              {
+                "text": string,
+                "response": string,
+                "similarityScore": number (0-1),
+                "analysis": string (detailed analysis of this specific response)
+              }
+            ],
+            "averageSimilarity": number (0-1, average of all similarity scores),
+            "consistencyScore": number (0-1, measures how consistent responses are)
+          }
+        ],
+        "averageResponseQuality": number (0-1, average of all similarity scores),
+        "consistencyScore": number (0-1, average of all consistency scores)
+      },
+      "details": {
+        "summary": string (comprehensive summary of test results),
+        "recommendations": string[] (specific improvement suggestions),
+        "questionAnalysis": [
+          {
+            "question": string,
+            "accuracy": number (0-1),
+            "consistency": number (0-1),
+            "comments": string (detailed analysis of this question),
+            "strengths": string[] (what worked well),
+            "weaknesses": string[] (areas for improvement)
+          }
+        ],
+        "consistencyAnalysis": string (analysis of response consistency)
+      },
+      "metadata": {
+        "chatbotName": string,
+        "modelName": string,
+        "projectName": string,
+        "workflowName": string,
+        "timestamp": string
       }
-  
-      Provide detailed insights and actionable recommendations.
-      IMPORTANT: Return ONLY the JSON object, without any markdown formatting or additional text.`;
-  
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-      
-      // Clean the response by removing any markdown formatting
-      const cleanedText = text
-        .replace(/```json\n?/g, '')
-        .replace(/```\n?/g, '')
-        .trim();
-      
-      try {
-        const parsed: ReportResponse = JSON.parse(cleanedText);
-        return parsed;
-      } catch (parseError) {
-        console.error('Error parsing report JSON:', parseError);
-        console.error('Problematic JSON string:', cleanedText);
-        throw new Error('Failed to parse report JSON');
-      }
-    } catch (error) {
-      console.error('Error generating report:', error);
-      throw new Error('Failed to generate report');
     }
+
+    For each question:
+    1. Calculate similarity scores between each utterance's response and the expected answer
+    2. Analyze consistency across all responses for the same question
+    3. Identify patterns in correct and incorrect responses
+    4. Provide specific feedback on response quality and accuracy
+    5. Highlight any hallucinations or inconsistencies
+    6. Calculate scores based on:
+       - Response accuracy (how close to expected answer)
+       - Response consistency (how similar responses are to each other)
+       - Response quality (clarity, completeness, relevance)
+       - Hallucination detection (false information or made-up details)
+
+    IMPORTANT: 
+    - Return ONLY the JSON object, without any markdown formatting or additional text
+    - Ensure all scores are between 0 and 1
+    - Provide detailed analysis for each response
+    - Include specific examples of good and bad responses
+    - Highlight any patterns in errors or inconsistencies`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    
+    // Clean the response by removing any markdown formatting
+    const cleanedText = text
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
+    
+    try {
+      const parsed: ReportResponse = JSON.parse(cleanedText);
+      
+      // Validate and normalize scores
+      parsed.overallScore = Math.min(1, Math.max(0, parsed.overallScore));
+      parsed.metrics.averageResponseQuality = Math.min(1, Math.max(0, parsed.metrics.averageResponseQuality));
+      parsed.metrics.consistencyScore = Math.min(1, Math.max(0, parsed.metrics.consistencyScore));
+      
+      parsed.metrics.accuracyByQuestion.forEach(question => {
+        question.score = Math.min(1, Math.max(0, question.score));
+        question.averageSimilarity = Math.min(1, Math.max(0, question.averageSimilarity));
+        question.consistencyScore = Math.min(1, Math.max(0, question.consistencyScore));
+        question.utterances.forEach(utterance => {
+          utterance.similarityScore = Math.min(1, Math.max(0, utterance.similarityScore));
+        });
+      });
+      
+      parsed.details.questionAnalysis.forEach(analysis => {
+        analysis.accuracy = Math.min(1, Math.max(0, analysis.accuracy));
+        analysis.consistency = Math.min(1, Math.max(0, analysis.consistency));
+      });
+      
+      return parsed;
+    } catch (parseError) {
+      console.error('Error parsing report JSON:', parseError);
+      console.error('Problematic JSON string:', cleanedText);
+      throw new Error('Failed to parse report JSON');
+    }
+  } catch (error) {
+    console.error('Error generating report:', error);
+    throw new Error('Failed to generate report');
   }
+}
   
