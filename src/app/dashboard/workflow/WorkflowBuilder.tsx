@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { MessageSquare, HelpCircle, Clock, PlayCircle, Plus, Minus, Trash2, Loader2, X, CheckCircle, Save } from 'lucide-react';
+import { MessageSquare, HelpCircle, Clock, PlayCircle, Plus, Minus, Trash2, Loader2, X, CheckCircle, Save, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -210,6 +210,80 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
     }
   };
 
+  const enhanceContent = async (type: 'question' | 'answer', content: string) => {
+    try {
+      const response = await fetch('/api/enhance', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type,
+          content
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to enhance content');
+      }
+
+      const data = await response.json();
+      return data.enhancedContent;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to enhance content. Please try again.",
+        variant: "destructive",
+      });
+      return content;
+    }
+  };
+
+  const handleEnhanceQuestion = async (item: WorkflowItem) => {
+    if (!item.content) {
+      toast({
+        title: "Error",
+        description: "Please enter a question first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const enhancedContent = await enhanceContent('question', item.content);
+    updateItemContent(item.id, enhancedContent);
+  };
+
+  const handleEnhanceAnswer = async (item: WorkflowItem) => {
+    if (!item.expectedAnswer) {
+      toast({
+        title: "Error",
+        description: "Please enter an expected answer first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const enhancedContent = await enhanceContent('answer', item.expectedAnswer);
+    updateItemExpectedAnswer(item.id, enhancedContent);
+  };
+
+  const validateWorkflow = () => {
+    const hasEmptyQuestions = workflowItems.some(
+      item => item.type === 'question' && (!item.content || !item.expectedAnswer)
+    );
+
+    if (hasEmptyQuestions) {
+      toast({
+        title: "Cannot Save",
+        description: "Please ensure all questions have both content and expected answers",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const saveWorkflow = async () => {
     if (!projectId || !selectedApi) {
       toast({
@@ -217,6 +291,10 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
         description: "Please select a chatbot before saving",
         variant: "destructive",
       });
+      return;
+    }
+
+    if (!validateWorkflow()) {
       return;
     }
 
@@ -245,7 +323,6 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
 
       const data = await response.json();
       
-      // Update workflowId if this was a new workflow
       if (!workflowId) {
         setWorkflowId(data.workflow.id);
       }
@@ -593,24 +670,48 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Question
                   </label>
-                  <Textarea
-                    value={selectedItem.content || ''}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateItemContent(selectedItem.id, e.target.value)}
-                    placeholder="Enter your question..."
-                    className="w-full min-h-[100px]"
-                  />
+                  <div className="relative">
+                    <Textarea
+                      value={selectedItem.content || ''}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateItemContent(selectedItem.id, e.target.value)}
+                      placeholder="Enter your question..."
+                      className="w-full min-h-[100px] pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-2"
+                      onClick={() => handleEnhanceQuestion(selectedItem)}
+                      disabled={!selectedItem.content}
+                    >
+                      <Sparkles className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Expected Answer
                   </label>
-                  <Textarea
-                    value={selectedItem.expectedAnswer || ''}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateItemExpectedAnswer(selectedItem.id, e.target.value)}
-                    placeholder="What is the expected response to this question?"
-                    className="w-full min-h-[100px]"
-                  />
+                  <div className="relative">
+                    <Textarea
+                      value={selectedItem.expectedAnswer || ''}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateItemExpectedAnswer(selectedItem.id, e.target.value)}
+                      placeholder="What is the expected response to this question?"
+                      className="w-full min-h-[100px] pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-2 top-2"
+                      onClick={() => handleEnhanceAnswer(selectedItem)}
+                      disabled={!selectedItem.expectedAnswer}
+                    >
+                      <Sparkles className="w-4 h-4" />
+                    </Button>
+                  </div>
                   <p className="text-xs text-gray-500 mt-2">
                     This will be used to evaluate the chatbot&apos;s response accuracy.
                   </p>

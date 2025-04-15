@@ -6,8 +6,9 @@ import { Sidebar } from "@/app/components/layout/Sidebar";
 import { Header } from "@/app/components/layout/Header";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, FolderOpen, FileText, BarChart2, Loader2 } from "lucide-react";
+import { Plus, FolderOpen, FileText, Loader2, BookOpen } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Progress } from "@/components/ui/progress";
 
 interface Project {
   id: string;
@@ -57,9 +58,15 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
         const projectsData = await projectsResponse.json();
         const reportsData = await reportsResponse.json();
 
-        setProjects(projectsData.projects);
-        setReports(reportsData.reports);
-      } catch (error) {
+        // Sort by date and take the 5 most recent
+        setProjects(projectsData.projects
+          .sort((a: Project, b: Project) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+          .slice(0, 5));
+        setReports(reportsData.reports
+          .sort((a: Report, b: Report) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 5));
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
         toast({
           title: "Error",
           description: "Failed to load dashboard data",
@@ -86,9 +93,9 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 0.8) return 'text-green-500';
-    if (score >= 0.6) return 'text-yellow-500';
-    return 'text-red-500';
+    if (score >= 0.8) return 'bg-lime-200';
+    if (score >= 0.6) return 'bg-violet-300';
+    return 'bg-red-500';
   };
 
   return (
@@ -107,7 +114,7 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
                   <div className="w-8 h-8 bg-[#D7FFBE] rounded-lg flex items-center justify-center">
                     <FolderOpen className="w-5 h-5 text-green-600" />
                   </div>
-                  <h2 className="text-gray-700 font-medium text-2xl">Your Projects</h2>
+                  <h2 className="text-gray-700 font-medium text-2xl">Recent Projects</h2>
                 </div>
                 <Button onClick={handleCreateProject} className="bg-white hover:bg-gray-200 text-black">
                   <Plus className="w-4 h-4 mr-2" />
@@ -130,33 +137,37 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {projects.map((project) => (
-                    <Card key={project.id} className="p-6 hover:shadow-lg transition-shadow bg-[#D7FFBE] border-green-100">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                          <FolderOpen className="w-5 h-5 text-green-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-black">{project.name}</h3>
-                          <p className="text-sm text-black">
-                            Last updated: {new Date(project.updatedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                      {project.description && (
-                        <p className="text-black text-sm mb-4 line-clamp-2">
-                          {project.description}
-                        </p>
-                      )}
-                      <Button 
-                        className="w-full bg-white hover:bg-green-50 text-black" 
-                        onClick={() => handleOpenProject(project.id)}
-                      >
-                        Open Project
-                      </Button>
-                    </Card>
-                  ))}
+                <div className="relative">
+                  <div className="overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-4 pb-4 min-w-max">
+                      {projects.map((project) => (
+                        <Card key={project.id} className="w-100 p-4 hover:shadow-lg transition-shadow bg-[#D7FFBE] border-green-100">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                              <FolderOpen className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium text-black line-clamp-1">{project.name}</h3>
+                              <p className="text-xs text-black">
+                                {new Date(project.updatedAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          {project.description && (
+                            <p className="text-black text-sm mb-3 line-clamp-2">
+                              {project.description}
+                            </p>
+                          )}
+                          <Button 
+                            className="w-full bg-white hover:bg-green-50 text-black text-sm"
+                            onClick={() => handleOpenProject(project.id)}
+                          >
+                            Open Project
+                          </Button>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -181,44 +192,48 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
                   <p className="text-black">Run a workflow to generate your first report</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {reports.map((report) => (
-                    <Card 
-                      key={report.id} 
-                      className="p-6 hover:shadow-lg transition-shadow cursor-pointer bg-white border-purple-100"
-                      onClick={() => handleViewReport(report.id, report.workflow.id)}
-                    >
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-black">{report.name}</h3>
-                          <p className="text-sm text-black">
-                            {report.workflow.project.name}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-black">Workflow</span>
-                          <span className="text-sm font-medium text-black">{report.workflow.name}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-black">Score</span>
-                          <span className={`text-sm font-medium ${getScoreColor(report.overallScore)}`}>
-                            {Math.round(report.overallScore * 100)}%
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm black">Generated</span>
-                          <span className="text-sm text-black">
-                            {new Date(report.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
+                <div className="relative">
+                  <div className="overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-4 pb-4 min-w-max">
+                      {reports.map((report) => (
+                        <Card 
+                          key={report.id} 
+                          className="w-100 p-4 hover:shadow-lg transition-shadow cursor-pointer bg-white border-gray-200"
+                          onClick={() => handleViewReport(report.id, report.workflow.id)}
+                        >
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                              <FileText className="w-5 h-5 text-purple-600" />
+                            </div>
+                            <div>
+                              <h3 className="font-medium text-black line-clamp-1">{report.name}</h3>
+                              <p className="text-xs text-black">
+                                {report.workflow.project.name}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div>
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-xs text-gray-500">Accuracy</span>
+                                <span className={`text-xs font-medium ${getScoreColor(report.overallScore).replace('bg-', 'text-')}`}>
+                                  {Math.round(report.overallScore * 100)}%
+                                </span>
+                              </div>
+                              <Progress 
+                                value={report.overallScore * 100} 
+                                className="h-2"
+                                indicatorClassName={getScoreColor(report.overallScore)}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {new Date(report.createdAt).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -226,8 +241,8 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
             {/* Analytics Section */}
             <div className="bg-gray-900 text-white rounded-lg p-6 flex items-center justify-between overflow-hidden relative">
               <div className="z-10">
-                <h2 className="text-xl font-bold mb-2">Learn what you can do with Utterly.ai</h2>
-                <p className="text-gray-300">Get the latest insights into Utterly's updates.</p>
+                <h2 className="text-xl font-bold mb-2">Knowledge Base</h2>
+                <p className="text-gray-300">Learn how to get the most out of Utterly</p>
               </div>
               <div className="absolute top-0 right-0 w-1/3 h-full">
                 <div className="absolute right-0 top-0 grid grid-cols-5 grid-rows-5 gap-2 opacity-30">
@@ -238,10 +253,10 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
               </div>
               <Button 
                 className="bg-white hover:bg-gray-100 text-purple-900 z-10"
-                onClick={() => router.push('/dashboard/analytics')}
+                onClick={() => router.push('/dashboard/knowledge')}
               >
-                
-                Learn more
+                <BookOpen className="w-4 h-4 mr-2" />
+                View Articles
               </Button>
             </div>
           </div>

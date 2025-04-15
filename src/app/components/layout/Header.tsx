@@ -25,7 +25,7 @@ export function Header({ userName = 'User' }: HeaderProps) {
       </div>
       <div className="flex items-center gap-4">
         <Link
-          href="/about"
+          href="/dashboard/knowledge"
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
           <Info size={20} />
