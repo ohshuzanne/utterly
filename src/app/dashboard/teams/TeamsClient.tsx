@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Header } from '@/app/components/layout/Header';
 import { Sidebar } from '@/app/components/layout/Sidebar';
-import { Loader2, Plus, Users } from 'lucide-react';
+import { Loader2, Plus, Users, ChevronRight } from 'lucide-react';
 
 interface User {
   id: string;
@@ -224,18 +224,66 @@ export default function TeamsClient({ user }: TeamsClientProps) {
                 {teams.map((team) => (
                   <Card
                     key={team.id}
-                    className="p-4 hover:shadow-md transition-shadow cursor-pointer"
-                    onClick={() => router.push(`/dashboard/teams/${team.id}`)}
+                    className="p-4 hover:shadow-md transition-shadow"
                   >
                     <CardHeader>
-                      <CardTitle>{team.name}</CardTitle>
+                      <CardTitle className="text-xl">{team.name}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-gray-500 mb-4">{team.description}</p>
-                      <div className="flex justify-between text-sm text-gray-500">
-                        <span>{team.members.length} members</span>
-                        <span>{team.projects.length} projects</span>
+                      
+                      {/* Member Avatars */}
+                      <div className="mb-4">
+                        <h3 className="text-sm font-medium text-gray-500 mb-2">Members</h3>
+                        <div className="flex items-center">
+                          <div className="flex -space-x-2">
+                            {team.members.slice(0, 3).map((member, index) => {
+                              const colors = ['#d3ffb8', '#ccacff', 'white'];
+                              const color = colors[index % colors.length];
+                              const initials = `${member.user.firstName[0]}${member.user.lastName[0]}`;
+                              return (
+                                <div
+                                  key={member.id}
+                                  className="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-xs font-medium"
+                                  style={{ backgroundColor: color }}
+                                >
+                                  {initials}
+                                </div>
+                              );
+                            })}
+                            {team.members.length > 3 && (
+                              <div className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs font-medium">
+                                +{team.members.length - 3}
+                              </div>
+                            )}
+                          </div>
+                          <span className="ml-2 text-sm text-gray-500">
+                            {team.members.length} members
+                          </span>
+                        </div>
                       </div>
+
+                      {/* Projects Count */}
+                      <div className="mb-4">
+                        <h3 className="text-sm font-medium text-gray-500 mb-2">Projects</h3>
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                            <span className="text-sm font-medium">{team.projects.length}</span>
+                          </div>
+                          <span className="ml-2 text-sm text-gray-500">
+                            {team.projects.length} {team.projects.length === 1 ? 'project' : 'projects'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* View Team Button */}
+                      <Button
+                        onClick={() => router.push(`/dashboard/teams/${team.id}`)}
+                        className="w-full bg-[#8b5cf6] text-white hover:bg-[#7c4dff]"
+                      >
+                        View Team
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
