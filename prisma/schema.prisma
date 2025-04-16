@@ -129,6 +129,30 @@ model Team {
   updatedAt   DateTime     @updatedAt
   members     TeamMember[]
   projects    Project[]
+  posts       TeamPost[]
+}
+
+model TeamPost {
+  id        String       @id @default(cuid())
+  content   String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  author    TeamMember   @relation(fields: [authorId], references: [id])
+  authorId  String
+  team      Team         @relation(fields: [teamId], references: [id])
+  teamId    String
+  comments  TeamComment[]
+}
+
+model TeamComment {
+  id        String    @id @default(cuid())
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  author    TeamMember @relation(fields: [authorId], references: [id])
+  authorId  String
+  post      TeamPost  @relation(fields: [postId], references: [id])
+  postId    String
 }
 
 model TeamMember {
@@ -140,6 +164,8 @@ model TeamMember {
   userId    String
   team      Team     @relation(fields: [teamId], references: [id])
   teamId    String
+  posts     TeamPost[]
+  comments  TeamComment[]
 
   @@unique([userId, teamId])
 }

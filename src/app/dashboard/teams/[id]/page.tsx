@@ -1,20 +1,35 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
-import { redirect } from 'next/navigation';
 import TeamDetailsClient from './TeamDetailsClient';
 
-interface TeamPageProps {
-  params: {
-    id: string;
-  };
+interface User {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  name: string;
 }
 
-export default async function TeamPage({ params }: TeamPageProps) {
+interface Project {
+  id: string;
+  name: string;
+  description: string;
+  workflows: {
+    id: string;
+    name: string;
+  }[];
+  reports: {
+    id: string;
+    name: string;
+    overallScore: number;
+  }[];
+}
+
+export default async function TeamPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions);
-  
   if (!session?.user?.email) {
-    redirect('/login');
+    return null;
   }
 
   const user = await prisma.user.findUnique({
@@ -28,7 +43,7 @@ export default async function TeamPage({ params }: TeamPageProps) {
   });
 
   if (!user) {
-    redirect('/login');
+    return null;
   }
 
   const team = await prisma.team.findUnique({
@@ -47,10 +62,7 @@ export default async function TeamPage({ params }: TeamPageProps) {
         },
       },
       projects: {
-        select: {
-          id: true,
-          name: true,
-          description: true,
+        include: {
           workflows: {
             select: {
               id: true,
@@ -66,40 +78,79 @@ export default async function TeamPage({ params }: TeamPageProps) {
           },
         },
       },
+      posts: {
+        include: {
+          author: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+          comments: {
+            include: {
+              author: {
+                include: {
+                  user: {
+                    select: {
+                      firstName: true,
+                      lastName: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      },
     },
   });
 
   if (!team) {
-    redirect('/dashboard/teams');
+    return null;
   }
 
-  // Check if user is a member of the team
-  const isMember = team.members.some(member => member.userId === user.id);
-  if (!isMember) {
-    redirect('/dashboard/teams');
-  }
-
-  // Get user's projects that aren't already in the team
   const userProjects = await prisma.project.findMany({
     where: {
       userId: user.id,
-      teamId: null,
+      NOT: {
+        teamId: {
+          not: null,
+        },
+      },
     },
-    select: {
-      id: true,
-      name: true,
-      description: true,
+    include: {
+      workflows: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      reports: {
+        select: {
+          id: true,
+          name: true,
+          overallScore: true,
+        },
+      },
     },
   });
+
+  const currentUser: User = {
+    ...user,
+    name: `${user.firstName} ${user.lastName}`.trim(),
+  };
 
   return (
     <TeamDetailsClient
       team={team}
-      currentUser={{
-        id: user.id,
-        name: `${user.firstName}`.trim(),
-        email: user.email,
-      }}
+      currentUser={currentUser}
       userProjects={userProjects}
     />
   );

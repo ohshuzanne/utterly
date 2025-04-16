@@ -16,6 +16,8 @@ import { Header } from '@/app/components/layout/Header';
 import { Sidebar } from '@/app/components/layout/Sidebar';
 import { Plus, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+import { formatDistanceToNow } from 'date-fns';
 
 interface User {
   id: string;
@@ -49,12 +51,36 @@ interface TeamMember {
   };
 }
 
+interface TeamPost {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: {
+    user: {
+      firstName: string;
+      lastName: string;
+    };
+  };
+  comments: {
+    id: string;
+    content: string;
+    createdAt: string;
+    author: {
+      user: {
+        firstName: string;
+        lastName: string;
+      };
+    };
+  }[];
+}
+
 interface Team {
   id: string;
   name: string;
   description: string | null;
   members: TeamMember[];
   projects: Project[];
+  posts: TeamPost[];
 }
 
 interface TeamDetailsClientProps {
@@ -70,6 +96,8 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [newPost, setNewPost] = useState('');
+  const [newComment, setNewComment] = useState<{ [postId: string]: string }>({});
 
   const isAdmin = team.members.find(member => member.user.id === currentUser.id)?.role === 'admin';
 
@@ -202,6 +230,71 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
     router.push(`/dashboard/workflow/${projectId}/results?reportId=${reportId}`);
   };
 
+  const handleCreatePost = async () => {
+    if (!newPost.trim()) return;
+
+    try {
+      const response = await fetch(`/api/teams/${team.id}/posts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: newPost }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create post');
+      }
+
+      router.refresh();
+      setNewPost('');
+      toast({
+        title: 'Success',
+        description: 'Post created successfully',
+      });
+    } catch (error) {
+      console.error('Error creating post:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create post',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleCreateComment = async (postId: string) => {
+    if (!newComment[postId]?.trim()) return;
+
+    try {
+      const response = await fetch(`/api/teams/${team.id}/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: newComment[postId] }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create comment');
+      }
+
+      router.refresh();
+      setNewComment({ ...newComment, [postId]: '' });
+      toast({
+        title: 'Success',
+        description: 'Comment added successfully',
+      });
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to add comment',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -216,7 +309,7 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 auto-rows-min">
               {/* Members Section */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
@@ -396,6 +489,86 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
                 </CardContent>
               </Card>
             </div>
+
+            {/* Team Updates Section */}
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Team Updates</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Create Post */}
+                  <div className="space-y-4">
+                    <Textarea
+                      placeholder="Share an update with your team..."
+                      value={newPost}
+                      onChange={(e) => setNewPost(e.target.value)}
+                      className="min-h-[100px]"
+                    />
+                    <Button 
+                      onClick={handleCreatePost}
+                      className="bg-[#8b5cf6] text-white"
+                    >
+                      Post Update
+                    </Button>
+                  </div>
+
+                  {/* Posts List */}
+                  <div className="space-y-6">
+                    {team.posts?.map((post) => (
+                      <Card key={post.id} className="p-4">
+                        <div className="space-y-4">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-medium">
+                                {post.author.user.firstName} {post.author.user.lastName}
+                              </span>
+                              <span className="text-sm text-gray-500">
+                                {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
+                              </span>
+                            </div>
+                            <p className="text-gray-700">{post.content}</p>
+                          </div>
+
+                          {/* Comments */}
+                          <div className="space-y-4">
+                            {post.comments?.map((comment) => (
+                              <div key={comment.id} className="pl-4 border-l-2 border-gray-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="font-medium">
+                                    {comment.author.user.firstName} {comment.author.user.lastName}
+                                  </span>
+                                  <span className="text-sm text-gray-500">
+                                    {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                                  </span>
+                                </div>
+                                <p className="text-gray-600">{comment.content}</p>
+                              </div>
+                            ))}
+
+                            {/* Add Comment */}
+                            <div className="flex gap-2">
+                              <Textarea
+                                placeholder="Add a comment..."
+                                value={newComment[post.id] || ''}
+                                onChange={(e) => setNewComment({ ...newComment, [post.id]: e.target.value })}
+                                className="flex-1"
+                              />
+                              <Button 
+                                onClick={() => handleCreateComment(post.id)}
+                                className="bg-[#8b5cf6] text-white"
+                              >
+                                Comment
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>
