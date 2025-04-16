@@ -527,7 +527,7 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
                   </div>
 
                   {/* Posts List */}
-                  <div className="space-y-6">
+                  <div className="space-y-6 mb-10">
                     {team.posts?.map((post) => (
                       <Card key={post.id} className="p-4">
                         <div className="space-y-4">
@@ -586,7 +586,7 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
                             ))}
 
                             {/* Add Comment */}
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 mb-10">
                               <div className="flex-1">
                                 <TaggedTextarea
                                   value={newComment[post.id] || ''}
