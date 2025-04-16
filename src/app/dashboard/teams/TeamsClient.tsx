@@ -120,64 +120,14 @@ export default function TeamsClient({ user }: TeamsClientProps) {
       <div className="flex-1">
         <Header userName={user.name} />
         <main className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Teams</h1>
-            <Dialog>
-              <DialogTrigger asChild>
-              <Button className="w-[-26px] bg-[#8b5cf6] text-white">
-                      <Plus className="w-4 h-4 mr-2" />
-                  Create Team
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create New Team</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium">
-                      Team Name
-                    </label>
-                    <Input
-                      id="name"
-                      value={newTeam.name}
-                      onChange={(e) =>
-                        setNewTeam({ ...newTeam, name: e.target.value })
-                      }
-                      placeholder="Enter team name"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="description" className="block text-sm font-medium">
-                      Description
-                    </label>
-                    <Textarea
-                      id="description"
-                      value={newTeam.description}
-                      onChange={(e) =>
-                        setNewTeam({ ...newTeam, description: e.target.value })
-                      }
-                      placeholder="Enter team description"
-                    />
-                  </div>
-                  <Button onClick={handleCreateTeam} className="w-full">
-                    Create Team
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          {teams.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No Teams Found</h2>
-              <p className="text-gray-500 mb-4">You don&apos;t belong to any teams yet.</p>
+          <div className="max-w-6xl mx-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h1 className="text-2xl font-bold">Teams</h1>
               <Dialog>
                 <DialogTrigger asChild>
-                <Button className="w-[-40px] bg-[#8b5cf6] text-white" >
-                      <Plus className="w-4 h-4 mr-2" />
-                    Create Your First Team
+                <Button className="w-[-26px] bg-[#8b5cf6] text-white">
+                        <Plus className="w-4 h-4 mr-2" />
+                    Create Team
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -211,35 +161,87 @@ export default function TeamsClient({ user }: TeamsClientProps) {
                         placeholder="Enter team description"
                       />
                     </div>
-                    <Button onClick={handleCreateTeam} className="w-full">
+                    <Button onClick={handleCreateTeam} className="w-full bg-[#8b5cf6] text-white">
                       Create Team
                     </Button>
                   </div>
                 </DialogContent>
               </Dialog>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {teams.map((team) => (
-                <Card
-                  key={team.id}
-                  className="p-4 hover:shadow-md transition-shadow cursor-pointer"
-                  onClick={() => router.push(`/dashboard/teams/${team.id}`)}
-                >
-                  <CardHeader>
-                    <CardTitle>{team.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-gray-500 mb-4">{team.description}</p>
-                    <div className="flex justify-between text-sm text-gray-500">
-                      <span>{team.members.length} members</span>
-                      <span>{team.projects.length} projects</span>
+
+            {teams.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                <h2 className="text-xl font-semibold mb-2">No Teams Found</h2>
+                <p className="text-gray-500 mb-4">You don&apos;t belong to any teams yet.</p>
+                <Dialog>
+                  <DialogTrigger asChild>
+                  <Button className="w-[-40px] bg-[#8b5cf6] text-white" >
+                        <Plus className="w-4 h-4 mr-2" />
+                      Create Your First Team
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create New Team</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <label htmlFor="name" className="block text-sm font-medium">
+                          Team Name
+                        </label>
+                        <Input
+                          id="name"
+                          value={newTeam.name}
+                          onChange={(e) =>
+                            setNewTeam({ ...newTeam, name: e.target.value })
+                          }
+                          placeholder="Enter team name"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="description" className="block text-sm font-medium">
+                          Description
+                        </label>
+                        <Textarea
+                          id="description"
+                          value={newTeam.description}
+                          onChange={(e) =>
+                            setNewTeam({ ...newTeam, description: e.target.value })
+                          }
+                          placeholder="Enter team description"
+                        />
+                      </div>
+                      <Button onClick={handleCreateTeam} className="w-full bg-[#8b5cf6] text-white">
+                        Create Team
+                      </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+                  </DialogContent>
+                </Dialog>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {teams.map((team) => (
+                  <Card
+                    key={team.id}
+                    className="p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => router.push(`/dashboard/teams/${team.id}`)}
+                  >
+                    <CardHeader>
+                      <CardTitle>{team.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-500 mb-4">{team.description}</p>
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>{team.members.length} members</span>
+                        <span>{team.projects.length} projects</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </main>
       </div>
     </div>

@@ -27,6 +27,15 @@ interface Project {
   id: string;
   name: string;
   description: string | null;
+  workflows?: {
+    id: string;
+    name: string;
+  }[];
+  reports?: {
+    id: string;
+    name: string;
+    overallScore: number;
+  }[];
 }
 
 interface TeamMember {
@@ -159,147 +168,233 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
       <div className="ml-[60px] flex-1">
         <Header userName={currentUser.name} />
         <main className="p-6">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold mb-2">{team.name}</h1>
-            {team.description && (
-              <p className="text-gray-600">{team.description}</p>
-            )}
-          </div>
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold mb-2">{team.name}</h1>
+              {team.description && (
+                <p className="text-gray-600">{team.description}</p>
+              )}
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Members Section */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Team Members</CardTitle>
-                {isAdmin && (
-                  <Dialog open={isAddingMember} onOpenChange={setIsAddingMember}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {/* Members Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Team Members</CardTitle>
+                  {isAdmin && (
+                    <Dialog open={isAddingMember} onOpenChange={setIsAddingMember}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" className="bg-[#8b5cf6] text-white">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Member
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Add Team Member</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <label htmlFor="email" className="block text-sm font-medium">
+                              Email Address
+                            </label>
+                            <Input
+                              id="email"
+                              value={newMemberEmail}
+                              onChange={(e) => setNewMemberEmail(e.target.value)}
+                              placeholder="Enter member's email"
+                            />
+                          </div>
+                          <Button 
+                            onClick={handleAddMember} 
+                            className="w-full bg-[#8b5cf6] text-white"
+                          >
+                            Add Member
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {team.members.map((member) => (
+                      <div
+                        key={member.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium">
+                            {member.user.firstName} {member.user.lastName}
+                          </p>
+                          <p className="text-sm text-gray-500">{member.user.email}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500">{member.role}</span>
+                          {isAdmin && member.user.id !== currentUser.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveMember(member.id)}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Projects Section */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>Team Projects</CardTitle>
+                  <Dialog open={isAddingProject} onOpenChange={setIsAddingProject}>
                     <DialogTrigger asChild>
-                      <Button size="sm">
+                      <Button size="sm" className="bg-[#8b5cf6] text-white">
                         <Plus className="w-4 h-4 mr-2" />
-                        Add Member
+                        Add Project
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Add Team Member</DialogTitle>
+                        <DialogTitle>Add Project to Team</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
                         <div>
-                          <label htmlFor="email" className="block text-sm font-medium">
-                            Email Address
+                          <label htmlFor="project" className="block text-sm font-medium">
+                            Select Project
                           </label>
-                          <Input
-                            id="email"
-                            value={newMemberEmail}
-                            onChange={(e) => setNewMemberEmail(e.target.value)}
-                            placeholder="Enter member's email"
-                          />
+                          <select
+                            id="project"
+                            value={selectedProjectId}
+                            onChange={(e) => setSelectedProjectId(e.target.value)}
+                            className="w-full p-2 border rounded-md"
+                          >
+                            <option value="">Select a project</option>
+                            {userProjects.map((project) => (
+                              <option key={project.id} value={project.id}>
+                                {project.name}
+                              </option>
+                            ))}
+                          </select>
                         </div>
-                        <Button onClick={handleAddMember} className="w-full">
-                          Add Member
+                        <Button 
+                          onClick={handleAddProject} 
+                          className="w-full bg-[#8b5cf6] text-white"
+                        >
+                          Add Project
                         </Button>
                       </div>
                     </DialogContent>
                   </Dialog>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {team.members.map((member) => (
-                    <div
-                      key={member.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">
-                          {member.user.firstName} {member.user.lastName}
-                        </p>
-                        <p className="text-sm text-gray-500">{member.user.email}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {team.projects.map((project) => (
+                      <div
+                        key={project.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div>
+                          <p className="font-medium">{project.name}</p>
+                          {project.description && (
+                            <p className="text-sm text-gray-500">{project.description}</p>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => router.push(`/dashboard/workflow/${project.id}`)}
+                        >
+                          <FolderOpen className="w-4 h-4" />
+                        </Button>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">{member.role}</span>
-                        {isAdmin && member.user.id !== currentUser.id && (
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Workflows and Reports Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Workflows Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Team Workflows</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {team.projects.flatMap(project => 
+                      project.workflows?.map(workflow => (
+                        <div
+                          key={workflow.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        >
+                          <div>
+                            <p className="font-medium">{workflow.name}</p>
+                            <p className="text-sm text-gray-500">{project.name}</p>
+                          </div>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleRemoveMember(member.id)}
+                            onClick={() => router.push(`/dashboard/workflow/${project.id}`)}
                           >
-                            <X className="w-4 h-4" />
+                            <FolderOpen className="w-4 h-4" />
                           </Button>
-                        )}
+                        </div>
+                      ))
+                    )}
+                    {team.projects.every(project => !project.workflows?.length) && (
+                      <div className="text-center py-6">
+                        <p className="text-gray-500">No workflows found</p>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Projects Section */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Team Projects</CardTitle>
-                <Dialog open={isAddingProject} onOpenChange={setIsAddingProject}>
-                  <DialogTrigger asChild>
-                    <Button size="sm">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Project
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add Project to Team</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="project" className="block text-sm font-medium">
-                          Select Project
-                        </label>
-                        <select
-                          id="project"
-                          value={selectedProjectId}
-                          onChange={(e) => setSelectedProjectId(e.target.value)}
-                          className="w-full p-2 border rounded-md"
+              {/* Reports Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Team Reports</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {team.projects.flatMap(project => 
+                      project.reports?.map(report => (
+                        <div
+                          key={report.id}
+                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                         >
-                          <option value="">Select a project</option>
-                          {userProjects.map((project) => (
-                            <option key={project.id} value={project.id}>
-                              {project.name}
-                            </option>
-                          ))}
-                        </select>
+                          <div>
+                            <p className="font-medium">{report.name}</p>
+                            <p className="text-sm text-gray-500">{project.name}</p>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Score: {Math.round(report.overallScore * 100)}%
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => router.push(`/dashboard/workflow/${project.id}/results?reportId=${report.id}`)}
+                          >
+                            <FolderOpen className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                    {team.projects.every(project => !project.reports?.length) && (
+                      <div className="text-center py-6">
+                        <p className="text-gray-500">No reports found</p>
                       </div>
-                      <Button onClick={handleAddProject} className="w-full">
-                        Add Project
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {team.projects.map((project) => (
-                    <div
-                      key={project.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div>
-                        <p className="font-medium">{project.name}</p>
-                        {project.description && (
-                          <p className="text-sm text-gray-500">{project.description}</p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => router.push(`/dashboard/workflow/${project.id}`)}
-                      >
-                        <FolderOpen className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </main>
       </div>
