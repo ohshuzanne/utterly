@@ -144,7 +144,7 @@ export default async function TeamPage({ params }: { params: { id: string } }) {
 
   const currentUser: User = {
     ...user,
-    name: `${user.firstName} ${user.lastName}`.trim(),
+    name: `${user.firstName}`.trim(),
   };
 
   return (

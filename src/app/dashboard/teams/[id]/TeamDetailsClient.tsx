@@ -16,7 +16,7 @@ import { Header } from '@/app/components/layout/Header';
 import { Sidebar } from '@/app/components/layout/Sidebar';
 import { Plus, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { Textarea } from '@/components/ui/textarea';
+import { TaggedTextarea } from '@/components/ui/tagged-textarea';
 import { formatDistanceToNow } from 'date-fns';
 
 interface User {
@@ -295,6 +295,19 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
     }
   };
 
+  const suggestions = [
+    ...team.members.map(member => ({
+      id: member.id,
+      name: `${member.user.firstName} ${member.user.lastName}`,
+      type: 'member' as const,
+    })),
+    ...team.projects.map(project => ({
+      id: project.id,
+      name: project.name,
+      type: 'project' as const,
+    })),
+  ];
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -499,11 +512,11 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
                 <div className="space-y-6">
                   {/* Create Post */}
                   <div className="space-y-4">
-                    <Textarea
-                      placeholder="Share an update with your team..."
+                    <TaggedTextarea
                       value={newPost}
-                      onChange={(e) => setNewPost(e.target.value)}
-                      className="min-h-[100px]"
+                      onChange={setNewPost}
+                      placeholder="Share an update with your team..."
+                      suggestions={suggestions}
                     />
                     <Button 
                       onClick={handleCreatePost}
@@ -527,7 +540,20 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
                                 {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
                               </span>
                             </div>
-                            <p className="text-gray-700">{post.content}</p>
+                            <div className="text-gray-700 whitespace-pre-wrap">
+                              {post.content.split(/(@\[[^\]]+\]\([^)]+\))/g).map((part, index) => {
+                                const match = part.match(/@\[([^\]]+)\]\(([^:]+):([^)]+)\)/);
+                                if (match) {
+                                  const [, name] = match;
+                                  return (
+                                    <span key={index} className="bg-[#d3ffb8] px-1 rounded">
+                                      @{name}
+                                    </span>
+                                  );
+                                }
+                                return part;
+                              })}
+                            </div>
                           </div>
 
                           {/* Comments */}
@@ -542,18 +568,33 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
                                     {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                                   </span>
                                 </div>
-                                <p className="text-gray-600">{comment.content}</p>
+                                <div className="text-gray-600 whitespace-pre-wrap">
+                                  {comment.content.split(/(@\[[^\]]+\]\([^)]+\))/g).map((part, index) => {
+                                    const match = part.match(/@\[([^\]]+)\]\(([^:]+):([^)]+)\)/);
+                                    if (match) {
+                                      const [, name] = match;
+                                      return (
+                                        <span key={index} className="bg-[#d3ffb8] px-1 rounded">
+                                          @{name}
+                                        </span>
+                                      );
+                                    }
+                                    return part;
+                                  })}
+                                </div>
                               </div>
                             ))}
 
                             {/* Add Comment */}
                             <div className="flex gap-2">
-                              <Textarea
-                                placeholder="Add a comment..."
-                                value={newComment[post.id] || ''}
-                                onChange={(e) => setNewComment({ ...newComment, [post.id]: e.target.value })}
-                                className="flex-1"
-                              />
+                              <div className="flex-1">
+                                <TaggedTextarea
+                                  value={newComment[post.id] || ''}
+                                  onChange={(value) => setNewComment({ ...newComment, [post.id]: value })}
+                                  placeholder="Add a comment..."
+                                  suggestions={suggestions}
+                                />
+                              </div>
                               <Button 
                                 onClick={() => handleCreateComment(post.id)}
                                 className="bg-[#8b5cf6] text-white"
