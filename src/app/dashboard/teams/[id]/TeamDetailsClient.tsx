@@ -156,7 +156,7 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
   return (
     <div className="flex h-screen">
       <Sidebar />
-      <div className="flex-1">
+      <div className="ml-[60px] flex-1">
         <Header userName={currentUser.name} />
         <main className="p-6">
           <div className="mb-8">

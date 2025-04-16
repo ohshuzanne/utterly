@@ -84,7 +84,7 @@ export default async function TeamPage({ params }: TeamPageProps) {
       team={team}
       currentUser={{
         id: user.id,
-        name: `${user.firstName} ${user.lastName}`.trim(),
+        name: `${user.firstName}`.trim(),
         email: user.email,
       }}
       userProjects={userProjects}
