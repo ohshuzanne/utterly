@@ -51,6 +51,19 @@ export default async function TeamPage({ params }: TeamPageProps) {
           id: true,
           name: true,
           description: true,
+          workflows: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          reports: {
+            select: {
+              id: true,
+              name: true,
+              overallScore: true,
+            },
+          },
         },
       },
     },

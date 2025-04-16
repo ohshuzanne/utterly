@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Header } from '@/app/components/layout/Header';
 import { Sidebar } from '@/app/components/layout/Sidebar';
-import { Plus, FolderOpen, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 interface User {
@@ -26,12 +26,12 @@ interface User {
 interface Project {
   id: string;
   name: string;
-  description: string | null;
-  workflows?: {
+  description: string;
+  workflows: {
     id: string;
     name: string;
   }[];
-  reports?: {
+  reports: {
     id: string;
     name: string;
     overallScore: number;
@@ -160,6 +160,46 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
         variant: 'destructive',
       });
     }
+  };
+
+  const handleRemoveProject = async (e: React.MouseEvent, projectId: string) => {
+    e.stopPropagation();
+    try {
+      const response = await fetch(`/api/teams/${team.id}/projects/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to remove project');
+      }
+
+      router.refresh();
+      toast({
+        title: 'Success',
+        description: 'Project removed successfully',
+      });
+    } catch (error) {
+      console.error('Error removing project:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to remove project',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const navigateToWorkflow = (e: React.MouseEvent, projectId: string) => {
+    e.stopPropagation();
+    router.push(`/dashboard/workflow/${projectId}`);
+  };
+
+  const navigateToReport = (e: React.MouseEvent, projectId: string, reportId: string) => {
+    e.stopPropagation();
+    router.push(`/dashboard/workflow/${projectId}/results?reportId=${reportId}`);
   };
 
   return (
@@ -294,103 +334,64 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
                 <CardContent>
                   <div className="space-y-4">
                     {team.projects.map((project) => (
-                      <div
-                        key={project.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">{project.name}</p>
-                          {project.description && (
-                            <p className="text-sm text-gray-500">{project.description}</p>
+                      <Card key={project.id} className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="text-lg font-semibold">{project.name}</h3>
+                            <p className="text-gray-600">{project.description}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => handleRemoveProject(e, project.id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                        
+                        <div className="mt-4">
+                          <h4 className="font-medium mb-2">Workflows</h4>
+                          {project.workflows.length > 0 ? (
+                            <ul className="space-y-2">
+                              {project.workflows.map((workflow) => (
+                                <li 
+                                  key={workflow.id} 
+                                  className="flex items-center cursor-pointer hover:text-[#8b5cf6]"
+                                  onClick={(e) => navigateToWorkflow(e, project.id)}
+                                >
+                                  <span className="text-gray-600">{workflow.name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-gray-500">No workflows found</p>
                           )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => router.push(`/dashboard/workflow/${project.id}`)}
-                        >
-                          <FolderOpen className="w-4 h-4" />
-                        </Button>
-                      </div>
+
+                        <div className="mt-4">
+                          <h4 className="font-medium mb-2">Reports</h4>
+                          {project.reports.length > 0 ? (
+                            <ul className="space-y-2">
+                              {project.reports.map((report) => (
+                                <li 
+                                  key={report.id} 
+                                  className="flex items-center justify-between cursor-pointer hover:text-[#8b5cf6]"
+                                  onClick={(e) => navigateToReport(e, project.id, report.id)}
+                                >
+                                  <span className="text-gray-600">{report.name}</span>
+                                  <span className="text-sm text-gray-500">
+                                    Score: {report.overallScore}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-gray-500">No reports found</p>
+                          )}
+                        </div>
+                      </Card>
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Workflows and Reports Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Workflows Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Team Workflows</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {team.projects.flatMap(project => 
-                      project.workflows?.map(workflow => (
-                        <div
-                          key={workflow.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                        >
-                          <div>
-                            <p className="font-medium">{workflow.name}</p>
-                            <p className="text-sm text-gray-500">{project.name}</p>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => router.push(`/dashboard/workflow/${project.id}`)}
-                          >
-                            <FolderOpen className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))
-                    )}
-                    {team.projects.every(project => !project.workflows?.length) && (
-                      <div className="text-center py-6">
-                        <p className="text-gray-500">No workflows found</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Reports Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Team Reports</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {team.projects.flatMap(project => 
-                      project.reports?.map(report => (
-                        <div
-                          key={report.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                        >
-                          <div>
-                            <p className="font-medium">{report.name}</p>
-                            <p className="text-sm text-gray-500">{project.name}</p>
-                            <div className="text-xs text-gray-500 mt-1">
-                              Score: {Math.round(report.overallScore * 100)}%
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => router.push(`/dashboard/workflow/${project.id}/results?reportId=${report.id}`)}
-                          >
-                            <FolderOpen className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))
-                    )}
-                    {team.projects.every(project => !project.reports?.length) && (
-                      <div className="text-center py-6">
-                        <p className="text-gray-500">No reports found</p>
-                      </div>
-                    )}
                   </div>
                 </CardContent>
               </Card>
