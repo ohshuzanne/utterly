@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Workflow, BarChart2, Settings, Cloud } from 'lucide-react';
+import { Home, Workflow, BarChart2, Settings, Cloud, Users } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -15,6 +15,7 @@ const menuItems = [
   { icon: Cloud, label: 'Chatbot', href: '/dashboard/chatbot' },
   { icon: Workflow, label: 'Workflow', href: '/dashboard/workflow' },
   { icon: BarChart2, label: 'Analytics', href: '/dashboard/analytics' },
+  { icon: Users, label: 'Teams', href: '/dashboard/teams' },
 ];
 
 export function Sidebar() {

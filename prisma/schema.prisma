@@ -29,6 +29,7 @@ model User {
   chatbots        Chatbot[]
   accounts        Account[]
   sessions        Session[]
+  teams           TeamMember[]
 }
 
 model Account {
@@ -67,15 +68,17 @@ model VerificationToken {
 }
 
 model Project {
-  id        String     @id @default(cuid())
-  name      String
-  description       String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  user      User       @relation(fields: [userId], references: [id])
-  userId    String
-  workflows Workflow[]
-  reports   Report[]
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  team        Team?    @relation(fields: [teamId], references: [id])
+  teamId      String?
+  workflows   Workflow[]
+  reports     Report[]
 }
 
 model Chatbot {
@@ -116,6 +119,29 @@ model Report {
   projectId    String
   workflow     Workflow @relation(fields: [workflowId], references: [id])
   workflowId   String
+}
+
+model Team {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  members     TeamMember[]
+  projects    Project[]
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  role      String   @default("member")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  teamId    String
+
+  @@unique([userId, teamId])
 }
 
 // You might also want to add these models later:

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, BarChart2, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Header } from '@/app/components/layout/Header';
 import { Sidebar } from '@/app/components/layout/Sidebar';
 import { useToast } from '@/components/ui/use-toast';
