@@ -160,10 +160,10 @@ export default function ProjectsPage() {
           <div className="max-w-6xl mx-auto">
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-3xl font-bold">My Projects</h1>
-              <Button onClick={() => setIsCreating(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                New Project
-              </Button>
+              <Button onClick={() => setIsCreating(true)} className="bg-white hover:bg-gray-200 text-black">
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Project
+                </Button>
             </div>
 
             {isCreating && (
@@ -241,7 +241,7 @@ export default function ProjectsPage() {
                       Last updated: {new Date(project.updatedAt).toLocaleDateString()}
                     </div>
                     <Button 
-                      className="w-full" 
+                      className="w-full bg-[#8b5cf6] text-white" 
                       onClick={() => handleOpenProject(project.id)}
                     >
                       <FolderOpen className="w-4 h-4 mr-2" />
