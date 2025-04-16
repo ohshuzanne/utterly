@@ -63,7 +63,21 @@ export async function DELETE(
         where: { id: params.id },
       });
     } else {
-      // Remove the member
+      // First delete all comments by the member
+      await prisma.teamComment.deleteMany({
+        where: {
+          authorId: params.memberId,
+        },
+      });
+
+      // Then delete all posts by the member
+      await prisma.teamPost.deleteMany({
+        where: {
+          authorId: params.memberId,
+        },
+      });
+
+      // Finally remove the member
       await prisma.teamMember.delete({
         where: { id: params.memberId },
       });

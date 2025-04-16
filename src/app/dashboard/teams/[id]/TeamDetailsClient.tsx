@@ -172,7 +172,8 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
       });
 
       if (!response.ok) {
-        throw new Error('Failed to remove member');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to remove member');
       }
 
       router.refresh();
@@ -184,7 +185,7 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
       console.error('Error removing member:', error);
       toast({
         title: 'Error',
-        description: 'Failed to remove member',
+        description: error instanceof Error ? error.message : 'Failed to remove member',
         variant: 'destructive',
       });
     }
