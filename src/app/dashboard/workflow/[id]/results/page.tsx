@@ -55,6 +55,13 @@ export default function ReportPage() {
   const [error, setError] = useState<string | null>(null);
   const [firstName, setFirstName] = useState('');
 
+  const getBgColor = (score: number) => {
+    if (score >= 0.8) return 'bg-green-500';
+    if (score >= 0.6) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+  
+
   useEffect(() => {
     const fetchReport = async () => {
       if (!reportId) {
@@ -169,11 +176,12 @@ export default function ReportPage() {
                 </div>
                 <div className="flex-1">
                   <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full ${getScoreColor(report.overallScore)}`}
+                  <div 
+                      className={`h-full ${getBgColor(report.overallScore)} transition-all duration-500`}
                       style={{ width: `${report.overallScore * 100}%` }}
                     />
                   </div>
+
                   <div className="text-sm text-gray-500 mt-1">
                     {getScoreLabel(report.overallScore)}
                   </div>

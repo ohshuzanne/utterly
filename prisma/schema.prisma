@@ -169,8 +169,3 @@ model TeamMember {
 
   @@unique([userId, teamId])
 }
-
-// You might also want to add these models later:
-// - TestWorkflow (for combining multiple test cases)
-// - CustomPrompts (for storing user-specific prompt templates)
-// - AnalyticsConfig (for storing user preferences on analytics)

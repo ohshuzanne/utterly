@@ -24,6 +24,8 @@ interface WorkflowItem {
   expectedAnswer?: string;
   utteranceCount?: number;
   delay?: number;
+  validated?: boolean;
+  validationResponse?: string;
 }
 
 interface Chatbot {
@@ -130,7 +132,7 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
     const newItem: WorkflowItem = {
       id: Date.now().toString(),
       type,
-      content: type === 'delay' ? '2 hours' : '',
+      content: type === 'delay' ? '10 minutes' : '',
       utteranceCount: type === 'question' ? 10 : undefined,
     };
     setWorkflowItems([...workflowItems, newItem]);
@@ -268,9 +270,25 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
   };
 
   const validateWorkflow = () => {
+    // Check for empty questions
     const hasEmptyQuestions = workflowItems.some(
       item => item.type === 'question' && (!item.content || !item.expectedAnswer)
     );
+
+    // Check for invalid delays
+    const hasInvalidDelays = workflowItems.some(
+      item => item.type === 'delay' && (!item.content || isNaN(parseInt(item.content)) || parseInt(item.content) < 1 || parseInt(item.content) > 30)
+    );
+
+    // Check for unvalidated intents
+    const hasUnvalidatedIntents = workflowItems.some(
+      item => item.type === 'intent' && !item.validated
+    );
+
+    // Check if end conversation exists and is at the end
+    const endIndex = workflowItems.findIndex(item => item.type === 'end');
+    const hasEnd = endIndex !== -1;
+    const isEndLast = hasEnd && endIndex === workflowItems.length - 1;
 
     if (hasEmptyQuestions) {
       toast({
@@ -281,7 +299,106 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
       return false;
     }
 
+    if (hasInvalidDelays) {
+      toast({
+        title: "Cannot Save",
+        description: "Please ensure all delays are between 1-30 minutes",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (hasUnvalidatedIntents) {
+      toast({
+        title: "Cannot Save",
+        description: "Please validate all intents before saving",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!hasEnd) {
+      toast({
+        title: "Cannot Save",
+        description: "Please add an End Conversation node at the end of the workflow",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (!isEndLast) {
+      toast({
+        title: "Cannot Save",
+        description: "End Conversation node must be the last node in the workflow",
+        variant: "destructive",
+      });
+      return false;
+    }
+
     return true;
+  };
+
+  const validateIntent = async (item: WorkflowItem) => {
+    if (!item.content) {
+      toast({
+        title: "Error",
+        description: "Please enter intent content first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/validate-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          intent: item.content,
+          chatbotId: selectedApi
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to validate intent');
+      }
+
+      const data = await response.json();
+      
+      setWorkflowItems(prevItems => 
+        prevItems.map(prevItem => 
+          prevItem.id === item.id 
+            ? { 
+                ...prevItem, 
+                validated: data.isValid,
+                validationResponse: data.message
+              } 
+            : prevItem
+        )
+      );
+
+      if (data.isValid) {
+        toast({
+          title: "Success",
+          description: "Intent validated successfully",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Validation Failed",
+          description: data.message || "The chatbot could not understand this intent",
+          variant: "destructive",
+        });
+      }
+    } catch (error: unknown) {
+      console.error('Error validating intent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to validate intent. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const saveWorkflow = async () => {
@@ -332,7 +449,8 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
         description: "Workflow saved successfully",
         variant: "default",
       });
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error saving workflow:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to save workflow",
@@ -353,6 +471,20 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
       return;
     }
 
+    // Check if end conversation exists and is at the end
+    const endIndex = workflowItems.findIndex(item => item.type === 'end');
+    const hasEnd = endIndex !== -1;
+    const isEndLast = hasEnd && endIndex === workflowItems.length - 1;
+
+    if (!hasEnd || !isEndLast) {
+      toast({
+        title: "Cannot Execute",
+        description: "Please add an End Conversation node at the end of the workflow before executing",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsExecuting(true);
     try {
       const response = await fetch(`/api/workflows/${workflowId}/execute`, {
@@ -362,7 +494,11 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
         },
         body: JSON.stringify({
           chatbotId: selectedApi,
-          items: workflowItems
+          items: workflowItems.map(item => ({
+            ...item,
+            // Convert delay content to minutes for the backend
+            delay: item.type === 'delay' ? parseInt(item.content || '0') : undefined
+          }))
         }),
       });
 
@@ -384,7 +520,8 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
 
       // Redirect to results page with the report ID
       window.location.href = `/dashboard/workflow/${workflowId}/results?reportId=${reportId}`;
-    } catch (error) {
+    } catch (error: unknown) {
+      console.error('Error executing workflow:', error);
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to execute workflow",
@@ -661,6 +798,28 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
                     className="w-full min-h-[120px]"
                   />
                 </div>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => validateIntent(selectedItem)}
+                      disabled={!selectedItem.content}
+                    >
+                      Validate Intent
+                    </Button>
+                    {selectedItem.validated && (
+                      <div className="flex items-center gap-1 text-green-600">
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Validated</span>
+                      </div>
+                    )}
+                  </div>
+                  {selectedItem.validationResponse && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <h4 className="font-medium text-sm mb-2">Chatbot Response:</h4>
+                      <p className="text-sm text-gray-700">{selectedItem.validationResponse}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
             
@@ -749,13 +908,28 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
             {selectedItem.type === 'delay' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Delay Duration
+                  Delay Duration (1-30 minutes)
                 </label>
-                <Input
-                  value={selectedItem.content || ''}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateItemContent(selectedItem.id, e.target.value)}
-                  placeholder="e.g., 2 hours, 30 minutes, etc."
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={selectedItem.content || ''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const value = e.target.value;
+                      // Only update if the value is empty or a valid number between 1-30
+                      if (value === '' || (!isNaN(parseInt(value)) && parseInt(value) >= 1 && parseInt(value) <= 30)) {
+                        updateItemContent(selectedItem.id, value);
+                      }
+                    }}
+                    className="w-24"
+                  />
+                  <span className="text-sm text-gray-500">minutes</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  The workflow will pause for this duration before continuing to the next step.
+                </p>
               </div>
             )}
             

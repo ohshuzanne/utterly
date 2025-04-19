@@ -195,7 +195,7 @@ export default function ProjectsPage() {
                     <Button variant="outline" onClick={() => setIsCreating(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleCreateProject}>
+                    <Button className="w-36 bg-[#8b5cf6] text-white" onClick={handleCreateProject}>
                       Create Project
                     </Button>
                   </div>
