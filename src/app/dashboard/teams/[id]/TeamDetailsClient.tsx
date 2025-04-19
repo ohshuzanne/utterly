@@ -324,7 +324,6 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 auto-rows-min">
-              {/* Members Section */}
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>Team Members</CardTitle>

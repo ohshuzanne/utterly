@@ -40,12 +40,12 @@ export async function GET(
       return NextResponse.json({ error: 'Report not found' }, { status: 404 });
     }
 
-    // Check if the user has access to this report
+    // checks if the user has access to this report
     if (report.workflow.project.userId !== user.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Transform the report data to include metadata
+    // transforms the report data to include metadata
     const transformedReport = {
       ...report,
       metadata: {

@@ -167,7 +167,7 @@ export default function ReportPage() {
               </div>
             </div>
 
-            {/* Overall Performance Card */}
+            {/* overal performance  */}
             <Card className="p-6 mb-8">
               <h2 className="text-xl font-semibold mb-4">Overall Performance</h2>
               <div className="flex items-center gap-4">
@@ -189,7 +189,7 @@ export default function ReportPage() {
               </div>
             </Card>
 
-            {/* Metrics Card */}
+            {/* metrics card */}
             <Card className="p-6 mb-8">
               <h2 className="text-xl font-semibold mb-4">Metrics</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -220,7 +220,7 @@ export default function ReportPage() {
               </div>
             </Card>
 
-            {/* Question Analysis */}
+            {/* question analysis */}
             <div className="space-y-6">
               <h2 className="text-xl font-semibold">Question Analysis</h2>
               {report.metrics.accuracyByQuestion.map((question, index) => (
@@ -240,7 +240,7 @@ export default function ReportPage() {
                     </div>
                   </div>
                   
-                  {/* Question Analysis Details */}
+                  {/* details */}
                   <div className="mt-4">
                     <h4 className="text-sm font-medium text-gray-500 mb-2">Analysis</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -269,7 +269,7 @@ export default function ReportPage() {
                     </div>
                   </div>
                   
-                  {/* Utterance Analysis */}
+                  {/* utterances */}
                   <div className="mt-6">
                     <h4 className="text-sm font-medium text-gray-500 mb-2">Response Analysis</h4>
                     <div className="space-y-4">
@@ -291,7 +291,7 @@ export default function ReportPage() {
               ))}
             </div>
 
-            {/* Summary and Recommendations */}
+            {/* sumamries and recommaendations */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
               <Card className="p-6">
                 <h2 className="text-xl font-semibold mb-4">Summary</h2>

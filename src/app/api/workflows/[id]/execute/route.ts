@@ -35,7 +35,7 @@ export async function POST(
     const { chatbotId } = await request.json();
     const workflowId = params.id;
 
-    // Get the workflow with its items
+    // retrieves the entire workflow and its specific items
     const workflow = await prisma.workflow.findUnique({
       where: { 
         id: workflowId,
@@ -52,7 +52,7 @@ export async function POST(
       return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
     }
 
-    // Get the chatbot
+    // retrieves the specific chatbot
     const chatbot = await prisma.chatbot.findUnique({
       where: { id: chatbotId }
     });
@@ -61,20 +61,20 @@ export async function POST(
       return NextResponse.json({ error: 'Chatbot not found' }, { status: 404 });
     }
 
-    // Process each question in the workflow
+    // processes each question in the workflow
     const analyses: AnalysisResponse[] = [];
     const workflowItems = JSON.parse(JSON.stringify(workflow.items)) as WorkflowItem[];
 
     for (const item of workflowItems) {
       if (item.type === 'question' && item.content && item.expectedAnswer) {
         try {
-          // Generate utterances for the question
+          // generates the utterances for the question
           const utteranceResponse = await generateUtterances(item.content, item.utteranceCount || 10);
           if (utteranceResponse.error) {
             throw new Error(utteranceResponse.error);
           }
 
-          // Get answers from the chatbot for each utterance
+          // retrieves the answers from the chatbot for each utterance
           const answers = await Promise.all(
             utteranceResponse.utterances.map(async (utterance) => {
               try {
@@ -97,7 +97,7 @@ export async function POST(
 
                 const data = await response.json();
                 
-                // Handle different possible response structures
+                // handles the different possible response structures
                 if (data.choices?.[0]?.message?.content) {
                   return data.choices[0].message.content;
                 } else if (data.output?.[0]?.content?.[0]?.text) {
@@ -116,7 +116,7 @@ export async function POST(
             })
           );
 
-          // Analyze the responses
+          // analyzes the responses
           const analysis = await analyzeResponses(
             utteranceResponse.utterances,
             answers,
@@ -126,7 +126,7 @@ export async function POST(
           analyses.push(analysis);
         } catch (error) {
           console.error(`Error processing question: ${item.content}`, error);
-          // Continue with next question instead of failing the entire workflow
+          // continues with the next question instead of failing the entire workflow
           continue;
         }
       }
@@ -136,7 +136,7 @@ export async function POST(
       throw new Error('No questions were successfully processed');
     }
 
-    // Generate the final report
+    // generates the final report
     const report = await generateReport(
       workflow.project.name,
       workflow.name,
@@ -145,7 +145,7 @@ export async function POST(
       analyses
     );
 
-    // Save the report
+    // saves the report
     const savedReport = await prisma.report.create({
       data: {
         name: `${workflow.name} - ${new Date().toISOString()}`,

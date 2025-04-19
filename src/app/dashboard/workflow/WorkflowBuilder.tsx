@@ -270,22 +270,18 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
   };
 
   const validateWorkflow = () => {
-    // Check for empty questions
     const hasEmptyQuestions = workflowItems.some(
       item => item.type === 'question' && (!item.content || !item.expectedAnswer)
     );
 
-    // Check for invalid delays
     const hasInvalidDelays = workflowItems.some(
       item => item.type === 'delay' && (!item.content || isNaN(parseInt(item.content)) || parseInt(item.content) < 1 || parseInt(item.content) > 30)
     );
 
-    // Check for unvalidated intents
     const hasUnvalidatedIntents = workflowItems.some(
       item => item.type === 'intent' && !item.validated
     );
 
-    // Check if end conversation exists and is at the end
     const endIndex = workflowItems.findIndex(item => item.type === 'end');
     const hasEnd = endIndex !== -1;
     const isEndLast = hasEnd && endIndex === workflowItems.length - 1;
@@ -471,7 +467,7 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
       return;
     }
 
-    // Check if end conversation exists and is at the end
+    // checks  if end conversation exists and is at the end
     const endIndex = workflowItems.findIndex(item => item.type === 'end');
     const hasEnd = endIndex !== -1;
     const isEndLast = hasEnd && endIndex === workflowItems.length - 1;
@@ -496,7 +492,7 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
           chatbotId: selectedApi,
           items: workflowItems.map(item => ({
             ...item,
-            // Convert delay content to minutes for the backend
+            // converts delay content to minutes for the backend
             delay: item.type === 'delay' ? parseInt(item.content || '0') : undefined
           }))
         }),
@@ -515,10 +511,10 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
         variant: "default",
       });
 
-      // Wait a moment to show the success message
+      // waits a moment to show the success message
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Redirect to results page with the report ID
+      // redirects to results page with the report ID
       window.location.href = `/dashboard/workflow/${workflowId}/results?reportId=${reportId}`;
     } catch (error: unknown) {
       console.error('Error executing workflow:', error);
@@ -604,7 +600,7 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
             </div>
           </div>
           
-          {/* Save Workflow Button */}
+          {/* save workflow button */}
           <div className="mt-6">
             <div className="mb-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -636,9 +632,8 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
           </div>
         </div>
 
-        {/* Main Workflow Area */}
+        {/* main workflow area */}
         <div className="flex-1 relative">
-          {/* Top Controls */}
           <div className="absolute top-4 right-4 flex items-center gap-2 z-10">
             <Button
               variant="ghost"
@@ -674,14 +669,12 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
             </Button>
           </div>
 
-          {/* Project Title */}
           {projectName && (
             <div className="absolute top-4 left-4 z-10">
               <h2 className="text-xl font-bold">{projectName}</h2>
             </div>
           )}
 
-          {/* Workflow Canvas */}
           <div 
             className="h-full w-full overflow-auto p-8"
             style={{
@@ -768,7 +761,6 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
           </div>
         </div>
         
-        {/* Right Sidebar */}
         {selectedItem && (
           <div className="w-[350px] border-l border-gray-200 bg-white p-6 overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
@@ -918,7 +910,6 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
                     value={selectedItem.content || ''}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const value = e.target.value;
-                      // Only update if the value is empty or a valid number between 1-30
                       if (value === '' || (!isNaN(parseInt(value)) && parseInt(value) >= 1 && parseInt(value) <= 30)) {
                         updateItemContent(selectedItem.id, value);
                       }

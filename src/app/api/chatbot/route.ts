@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Create new chatbot
+    // creates a new chatbot
     const chatbot = await prisma.chatbot.create({
       data: {
         name,

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       Question: ${content}`;
     } else if (type === 'answer') {
       prompt = `Please enhance the following answer to make it more comprehensive and accurate. 
-      Keep the same meaning but improve its quality and clarity. 
+      Keep the same meaning but improve its quality and clarity. Keep the length similar to the original answer.
       Return only the enhanced answer without any additional text.
       
       Answer: ${content}`;

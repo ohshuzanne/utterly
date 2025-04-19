@@ -24,7 +24,7 @@ export async function GET(
 
     const projectId = params.id;
 
-    // Fetch the project with its workflows
+    // fethc the projects with their workflows
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
@@ -77,7 +77,7 @@ export async function DELETE(
 
     const projectId = params.id;
 
-    // Check if the project exists and belongs to the user
+    // checks if the project exists and belongs to the user
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
@@ -92,7 +92,7 @@ export async function DELETE(
       );
     }
 
-    // Delete the project (cascade will handle related workflows)
+    // deletes the project  and cascade will handle related workflows
     await prisma.project.delete({
       where: { id: projectId },
     });

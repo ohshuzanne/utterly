@@ -18,7 +18,6 @@ export async function POST(
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    // Find the user to add
     const userToAdd = await prisma.user.findUnique({
       where: { email },
     });
@@ -27,7 +26,6 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if the current user is an admin of the team
     const team = await prisma.team.findUnique({
       where: { id: params.id },
       include: {
@@ -48,7 +46,6 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is already a member
     const existingMember = await prisma.teamMember.findUnique({
       where: {
         userId_teamId: {
@@ -61,8 +58,6 @@ export async function POST(
     if (existingMember) {
       return NextResponse.json({ error: 'User is already a member' }, { status: 400 });
     }
-
-    // Add the user as a member
     const newMember = await prisma.teamMember.create({
       data: {
         userId: userToAdd.id,
@@ -101,7 +96,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if the current user is an admin of the team
     const team = await prisma.team.findUnique({
       where: { id: params.id },
       include: {

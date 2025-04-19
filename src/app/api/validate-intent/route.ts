@@ -16,7 +16,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Get the chatbot configuration
     const chatbot = await prisma.chatbot.findUnique({
       where: { id: chatbotId },
     });
@@ -25,9 +24,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Chatbot not found' }, { status: 404 });
     }
 
-    // Here you would typically call your chatbot's API to validate the intent
-    // For now, we'll simulate a more detailed validation response
-    const isValid = intent.length > 10; // Simple validation for demo
+    const isValid = intent.length > 10;
     const message = isValid 
       ? `The chatbot understands that you want to ${intent.toLowerCase()}. It will use this understanding to better answer related questions.`
       : 'The intent is too vague. Please provide more specific details about what you want the chatbot to understand.';

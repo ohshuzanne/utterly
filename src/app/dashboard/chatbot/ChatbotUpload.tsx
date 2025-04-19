@@ -65,7 +65,7 @@ export function ChatbotUpload({ firstName }: ChatbotUploadProps) {
         description: "Your chatbot has been added to your account.",
       });
 
-      // Redirect to workflow page
+      // redirects to workflow page
       router.push('/dashboard/workflow');
     } catch (error) {
       toast({

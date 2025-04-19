@@ -18,7 +18,6 @@ export async function POST(
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
-    // Check if the current user is a member of the team
     const team = await prisma.team.findUnique({
       where: { id: params.id },
       include: {
@@ -37,8 +36,6 @@ export async function POST(
     if (team.members.length === 0) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    // Check if the project exists and belongs to the user
     const project = await prisma.project.findUnique({
       where: {
         id: projectId,
@@ -50,12 +47,10 @@ export async function POST(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    // Check if project is already in the team
     if (project.teamId === params.id) {
       return NextResponse.json({ error: 'Project is already in the team' }, { status: 400 });
     }
 
-    // Add the project to the team
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
       data: {

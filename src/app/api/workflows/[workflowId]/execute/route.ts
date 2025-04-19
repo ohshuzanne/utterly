@@ -48,7 +48,7 @@ export async function POST(
     const { items } = await request.json();
     const workflowId = params.workflowId;
 
-    // Get the workflow and chatbot
+    // to find the specific workflow and chatbot
     const workflow = await prisma.workflow.findUnique({
       where: { id: workflowId },
       include: { chatbot: true }
@@ -58,7 +58,7 @@ export async function POST(
       return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
     }
 
-    // Create a new report
+    // to create a new report
     const report = await prisma.report.create({
       data: {
         name: `Execution Report - ${new Date().toLocaleString()}`,
@@ -70,17 +70,17 @@ export async function POST(
       }
     });
 
-    // Process each item in sequence
+    // to slowly process each item in the workflow
     const results: Result[] = [];
     for (const item of items as WorkflowItem[]) {
       if (item.type === 'delay') {
-        // Wait for the specified duration (in minutes)
+        // follows the wait/delay that has been set in the workflow
         await new Promise(resolve => setTimeout(resolve, (item.delay || 0) * 60 * 1000));
         continue;
       }
 
       if (item.type === 'intent' && item.content) {
-        // Analyze the intent
+        // analyze the intent accordingly
         const intentAnalysis = await analyzeIntent(item.content);
         results.push({
           type: 'intent',
@@ -91,7 +91,7 @@ export async function POST(
       }
 
       if (item.type === 'question' && item.content && item.expectedAnswer) {
-        // Process the question with multiple utterances
+        // process the questions alongside the utterances ccordingly
         const responses: QuestionResponse[] = [];
         for (let i = 0; i < (item.utteranceCount || 1); i++) {
           const response = await processQuestion(item);
@@ -112,10 +112,10 @@ export async function POST(
       }
     }
 
-    // Calculate metrics with grouped questions
+    // calculates the metrics for the results
     const metrics = calculateMetrics(results);
 
-    // Update the report with the results
+    // updates the report with ther results.
     await prisma.report.update({
       where: { id: report.id },
       data: {
@@ -135,8 +135,6 @@ export async function POST(
 }
 
 async function analyzeIntent(intent: string): Promise<IntentAnalysis> {
-  // Here you would call your chatbot's API to analyze the intent
-  // For now, we'll simulate a response
   return {
     analysis: `The intent of the question is to ${intent.toLowerCase()}.`,
     confidence: 0.95
@@ -144,8 +142,6 @@ async function analyzeIntent(intent: string): Promise<IntentAnalysis> {
 }
 
 async function processQuestion(item: WorkflowItem): Promise<QuestionResponse> {
-  // Here you would call your chatbot's API to process the question
-  // For now, we'll simulate a response
   return {
     answer: "This is a simulated response.",
     confidence: 0.85,

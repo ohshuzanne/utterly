@@ -56,7 +56,7 @@ export async function POST(req: Request) {
       experienceLevel,
     } = body;
 
-    // Update user in Prisma
+    // update user in prisma
     const user = await prisma.user.update({
       where: {
         email: session.user.email,

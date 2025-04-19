@@ -21,7 +21,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Update the project to remove it from the team
+    // updates the project to remove it from the team
     const updatedProject = await prisma.project.update({
       where: { id: params.projectId },
       data: {

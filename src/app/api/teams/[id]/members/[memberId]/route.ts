@@ -13,7 +13,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the current user
     const currentUser = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -22,7 +21,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if the current user is an admin of the team
     const team = await prisma.team.findUnique({
       where: { id: params.id },
       include: {
@@ -43,7 +41,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get the member to remove
     const memberToRemove = await prisma.teamMember.findUnique({
       where: { id: params.memberId },
     });
@@ -52,32 +49,27 @@ export async function DELETE(
       return NextResponse.json({ error: 'Member not found' }, { status: 404 });
     }
 
-    // Check if this is the last member
     const memberCount = await prisma.teamMember.count({
       where: { teamId: params.id },
     });
 
     if (memberCount === 1) {
-      // Delete the team if it's the last member
       await prisma.team.delete({
         where: { id: params.id },
       });
     } else {
-      // First delete all comments by the member
       await prisma.teamComment.deleteMany({
         where: {
           authorId: params.memberId,
         },
       });
 
-      // Then delete all posts by the member
       await prisma.teamPost.deleteMany({
         where: {
           authorId: params.memberId,
         },
       });
 
-      // Finally remove the member
       await prisma.teamMember.delete({
         where: { id: params.memberId },
       });

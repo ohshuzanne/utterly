@@ -24,7 +24,7 @@ export async function GET(
 
     const { id: projectId, workflowId } = params;
 
-    // Verify project ownership
+    // verifies the project ownership
     const project = await prisma.project.findFirst({
       where: {
         id: projectId,
@@ -39,7 +39,7 @@ export async function GET(
       );
     }
 
-    // Fetch the workflow
+    // retrieves the workflow
     const workflow = await prisma.workflow.findFirst({
       where: {
         id: workflowId,
@@ -86,7 +86,7 @@ export async function PUT(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if project belongs to user
+    // checks if the project belongs to the user
     const project = await prisma.project.findUnique({
       where: { 
         id: params.id,
@@ -98,7 +98,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    // Check if workflow exists and belongs to the project
+    // checks if the workflow exists and belongs to the project
     const existingWorkflow = await prisma.workflow.findUnique({
       where: { 
         id: params.workflowId,
@@ -159,7 +159,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Check if project belongs to user
+    // checks if the project belongs to the user
     const project = await prisma.project.findUnique({
       where: { 
         id: params.id,
@@ -171,7 +171,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    // Check if workflow exists and belongs to the project
+    // checks if the workflow exists and belongs to the project
     const existingWorkflow = await prisma.workflow.findUnique({
       where: { 
         id: params.workflowId,
@@ -183,7 +183,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
     }
 
-    // Delete the workflow
+    // deletes the workflow
     await prisma.workflow.delete({
       where: {
         id: params.workflowId
