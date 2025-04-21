@@ -67,7 +67,7 @@ export function Sidebar() {
         </nav>
 
         {/* Settings */}
-        <div className="mt-auto">
+        {/* <div className="mt-auto">
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
@@ -85,7 +85,7 @@ export function Sidebar() {
               <p>Settings</p>
             </TooltipContent>
           </Tooltip>
-        </div>
+        </div> */}
       </TooltipProvider>
     </div>
   );

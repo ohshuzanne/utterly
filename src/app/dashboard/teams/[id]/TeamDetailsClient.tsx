@@ -102,7 +102,14 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
   const isAdmin = team.members.find(member => member.user.id === currentUser.id)?.role === 'admin';
 
   const handleAddMember = async () => {
-    if (!newMemberEmail.trim()) return;
+    if (!newMemberEmail.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter an email address",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const response = await fetch(`/api/teams/${team.id}/members`, {
@@ -114,7 +121,23 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add member');
+        const errorData = await response.json();
+        if (response.status === 404 && errorData.error === 'User not found') {
+          toast({
+            title: "Error",
+            description: "No user found with this email address",
+            variant: "destructive",
+          });
+        } else if (response.status === 400 && errorData.error === 'User is already a member') {
+          toast({
+            title: "Error",
+            description: "This user is already a member of the team",
+            variant: "destructive",
+          });
+        } else {
+          throw new Error(errorData.error || 'Failed to add member');
+        }
+        return;
       }
 
       router.refresh();
@@ -127,7 +150,7 @@ export default function TeamDetailsClient({ team, currentUser, userProjects }: T
       console.error('Error adding member:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add member',
+        description: error instanceof Error ? error.message : 'Failed to add member',
         variant: 'destructive',
       });
     }
