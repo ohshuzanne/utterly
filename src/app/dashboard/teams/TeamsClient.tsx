@@ -16,6 +16,7 @@ import {
 import { Header } from '@/app/components/layout/Header';
 import { Sidebar } from '@/app/components/layout/Sidebar';
 import { Loader2, Plus, Users, ChevronRight } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 interface User {
   id: string;
@@ -76,6 +77,15 @@ export default function TeamsClient({ user }: TeamsClientProps) {
   };
 
   const handleCreateTeam = async () => {
+    if (!newTeam.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Team name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const response = await fetch('/api/teams', {
         method: 'POST',
@@ -95,8 +105,16 @@ export default function TeamsClient({ user }: TeamsClientProps) {
       const createdTeam = await response.json();
       setTeams([...teams, createdTeam]);
       setNewTeam({ name: '', description: '' });
+      toast({
+        title: "Success",
+        description: "Team created successfully",
+      });
     } catch (error) {
-      console.error('Error creating team:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create team",
+        variant: "destructive",
+      });
     }
   };
 

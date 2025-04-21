@@ -91,7 +91,7 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
         
         const data = await response.json();
         if (data.workflows && data.workflows.length > 0) {
-          // If there's an existing workflow, load its items
+          // load existing workflow items
           const workflow = data.workflows[0];
           if (workflow.items) {
             setWorkflowItems(workflow.items as WorkflowItem[]);
@@ -129,6 +129,16 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
   };
 
   const addItem = (type: WorkflowItem['type']) => {
+    // Check if trying to add an end node when one already exists
+    if (type === 'end' && workflowItems.some(item => item.type === 'end')) {
+      toast({
+        title: "Error",
+        description: "Only one end node is allowed in a workflow",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newItem: WorkflowItem = {
       id: Date.now().toString(),
       type,
@@ -192,11 +202,11 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
   };
 
   const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 0.1, 2)); // Max zoom: 200%
+    setZoom(prev => Math.min(prev + 0.1, 2));
   };
 
   const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 0.1, 0.5)); // Min zoom: 50%
+    setZoom(prev => Math.max(prev - 0.1, 0.5)); 
   };
 
   const getItemIcon = (type: WorkflowItem['type']) => {
