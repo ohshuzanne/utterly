@@ -250,7 +250,7 @@ export default function TeamsClient({ user }: TeamsClientProps) {
                     <CardContent>
                       <p className="text-sm text-gray-500 mb-4">{team.description}</p>
                       
-                      {/* Member Avatars */}
+                      {/* member avatars */}
                       <div className="mb-4">
                         <h3 className="text-sm font-medium text-gray-500 mb-2">Members</h3>
                         <div className="flex items-center">
@@ -281,7 +281,7 @@ export default function TeamsClient({ user }: TeamsClientProps) {
                         </div>
                       </div>
 
-                      {/* Projects Count */}
+                      {/* project counts */}
                       <div className="mb-4">
                         <h3 className="text-sm font-medium text-gray-500 mb-2">Projects</h3>
                         <div className="flex items-center">
@@ -294,7 +294,7 @@ export default function TeamsClient({ user }: TeamsClientProps) {
                         </div>
                       </div>
 
-                      {/* View Team Button */}
+                      {/* view team button */}
                       <Button
                         onClick={() => router.push(`/dashboard/teams/${team.id}`)}
                         className="w-full bg-[#8b5cf6] text-white hover:bg-[#7c4dff]"

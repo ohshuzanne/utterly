@@ -83,7 +83,7 @@ export function ChatbotUpload({ firstName }: ChatbotUploadProps) {
       <Header userName={firstName} />
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md relative">
-          {/* Help tooltip */}
+          {/* help tooltip */}
           <div className="absolute right-0 top-0">
             <TooltipProvider>
               <Tooltip>
@@ -99,7 +99,7 @@ export function ChatbotUpload({ firstName }: ChatbotUploadProps) {
           </div>
 
           <div className="flex flex-col items-center space-y-6">
-            {/* Cloud Icon */}
+            {/* cloud icon */}
             <div className="mb-4">
               <Cloud className="w-16 h-16 text-gray-400" />
             </div>

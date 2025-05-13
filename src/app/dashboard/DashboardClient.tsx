@@ -58,7 +58,7 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
         const projectsData = await projectsResponse.json();
         const reportsData = await reportsResponse.json();
 
-        // Sort by date and take the 5 most recent
+        // sorts projects and reports by updatedAt and createdAt respectively, and limits to 5 items
         setProjects(projectsData.projects
           .sort((a: Project, b: Project) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
           .slice(0, 5));
@@ -107,7 +107,6 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
         
         <main className="p-6">
           <div className="max-w-6xl mx-auto">
-            {/* Projects Section */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-3">
@@ -172,7 +171,7 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
               )}
             </div>
 
-            {/* Reports Section */}
+            {/* reports section */}
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-[#EADDFF] rounded-lg flex items-center justify-center">
@@ -238,7 +237,7 @@ export function DashboardClient({ firstName }: DashboardClientProps) {
               )}
             </div>
 
-            {/* Analytics Section */}
+            {/* analytics section */}
             <div className="bg-gray-900 text-white rounded-lg p-6 flex items-center justify-between overflow-hidden relative">
               <div className="z-10">
                 <h2 className="text-xl font-bold mb-2">Knowledge Base</h2>

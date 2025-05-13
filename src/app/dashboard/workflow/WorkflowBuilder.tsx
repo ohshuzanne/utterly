@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { MessageSquare, HelpCircle, Clock, PlayCircle, Plus, Minus, Trash2, Loader2, X, CheckCircle, Save, Sparkles } from 'lucide-react';
+import { MessageSquare, HelpCircle, Clock, PlayCircle, Plus, Minus, Trash2, Loader2, X, CheckCircle, Save, Sparkles, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -16,6 +16,12 @@ import { Header } from '@/app/components/layout/Header';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Sidebar } from '@/app/components/layout/Sidebar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface WorkflowItem {
   id: string;
@@ -129,7 +135,7 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
   };
 
   const addItem = (type: WorkflowItem['type']) => {
-    // Check if trying to add an end node when one already exists
+    // check if trying to add an end node when one already exists
     if (type === 'end' && workflowItems.some(item => item.type === 'end')) {
       toast({
         title: "Error",
@@ -581,32 +587,80 @@ export default function WorkflowBuilder({ firstName, projectId, projectName }: W
 
           <div className="space-y-4 flex-1">
             <div 
-              className="p-4 bg-gray-50 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-gray-100"
+              className="p-4 bg-gray-50 rounded-lg flex items-center justify-between cursor-pointer hover:bg-gray-100"
               onClick={() => addItem('intent')}
             >
-              <MessageSquare className="w-6 h-6" />
-              <span>Intent</span>
+              <div className="flex items-center gap-3">
+                <MessageSquare className="w-6 h-6" />
+                <span>Intent</span>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="w-4 h-4 text-gray-400" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Define what the chatbot should understand from the question&apos;s intent.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div 
-              className="p-4 bg-gray-50 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-gray-100"
+              className="p-4 bg-gray-50 rounded-lg flex items-center justify-between cursor-pointer hover:bg-gray-100"
               onClick={() => addItem('question')}
             >
-              <HelpCircle className="w-6 h-6" />
-              <span>Question</span>
+              <div className="flex items-center gap-3">
+                <HelpCircle className="w-6 h-6" />
+                <span>Question</span>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="w-4 h-4 text-gray-400" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Add a question to test the chatbot&apos;s response accuracy. Make sure to include an ideal answer to accompany it. Feel free to use the AI enhance button!</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div 
-              className="p-4 bg-gray-50 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-gray-100"
+              className="p-4 bg-gray-50 rounded-lg flex items-center justify-between cursor-pointer hover:bg-gray-100"
               onClick={() => addItem('delay')}
             >
-              <Clock className="w-6 h-6" />
-              <span>Wait/Set Delay</span>
+              <div className="flex items-center gap-3">
+                <Clock className="w-6 h-6" />
+                <span>Wait/Set Delay</span>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="w-4 h-4 text-gray-400" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Add a pause between steps (1-30 minutes) to test your time-sensitive chatbots!</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div 
-              className="p-4 bg-gray-50 rounded-lg flex items-center gap-3 cursor-pointer hover:bg-gray-100"
+              className="p-4 bg-gray-50 rounded-lg flex items-center justify-between cursor-pointer hover:bg-gray-100"
               onClick={() => addItem('end')}
             >
-              <PlayCircle className="w-6 h-6" />
-              <span>End Conversation</span>
+              <div className="flex items-center gap-3">
+                <PlayCircle className="w-6 h-6" />
+                <span>End Conversation</span>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="w-4 h-4 text-gray-400" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Mark the end of the conversation flow</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
           

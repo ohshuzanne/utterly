@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { Client } from '@notionhq/client';
 import { PageObjectResponse, PartialPageObjectResponse, DatabaseObjectResponse, PartialDatabaseObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
-// Log the environment variables (in development only)
+// logs the environment variables (in development only)
 if (process.env.NODE_ENV === 'development') {
   console.log('Notion API Key:', process.env.NOTION_API_KEY ? 'Present' : 'Missing');
   console.log('Notion Database ID:', process.env.NOTION_DATABASE_ID ? 'Present' : 'Missing');
@@ -38,8 +38,6 @@ export async function GET() {
         { status: 500 }
       );
     }
-
-    // First, let's try to get the database schema to verify properties
     console.log('Fetching database schema...');
     const database = await notion.databases.retrieve({ database_id: databaseId });
     console.log('Database properties:', Object.keys(database.properties));
@@ -53,8 +51,6 @@ export async function GET() {
       if (!('properties' in page)) {
         return null;
       }
-
-      // Get the exact property names from the database
       const titleProperty = page.properties.Name as { title: Array<{ plain_text: string }> };
       const descriptionProperty = page.properties.Description as { rich_text: Array<{ plain_text: string }> };
       
@@ -64,7 +60,6 @@ export async function GET() {
       const lastEditedTime = 'last_edited_time' in page ? page.last_edited_time : undefined;
       const url = 'url' in page ? page.url : undefined;
       
-      // Get cover image if available
       let coverUrl = '';
       if ('cover' in page && page.cover) {
         if (page.cover.type === 'external') {

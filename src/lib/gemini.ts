@@ -116,7 +116,7 @@ export function cleanJson(data: string): ReportData {
   }
 }
 
-// Legacy functions kept for backward compatibility
+//legacy functions kept for backward compatibility
 export async function generateUtterances(question: string, count: number): Promise<UtteranceResponse> {
   try {
     const utterances = await getUtterance(question, model);
@@ -289,7 +289,7 @@ export async function generateReport(
     const response = await result.response;
     const text = response.text();
     
-    // Clean the response by removing any markdown formatting
+    //clean the response by removing any markdown formatting that could've been returned
     const cleanedText = text
       .replace(/```json\n?/g, '')
       .replace(/```\n?/g, '')
@@ -298,7 +298,7 @@ export async function generateReport(
     try {
       const parsed: ReportResponse = JSON.parse(cleanedText);
       
-      // Validate and normalize scores
+      //validate and normalize scores
       parsed.overallScore = Math.min(1, Math.max(0, parsed.overallScore));
       parsed.metrics.averageResponseQuality = Math.min(1, Math.max(0, parsed.metrics.averageResponseQuality));
       parsed.metrics.consistencyScore = Math.min(1, Math.max(0, parsed.metrics.consistencyScore));
