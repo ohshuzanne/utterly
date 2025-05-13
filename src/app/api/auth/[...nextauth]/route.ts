@@ -4,7 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
 import { prisma } from "@/lib/prisma";
 
-// Add a type for the User with password
+// adds a type for user object with password
 type UserWithPassword = {
   id: string;
   email: string;
@@ -33,7 +33,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Use raw query to avoid TypeScript issues with the password field
+        // uses raw query to avoid TypeScript issues with the password field
         const users = await prisma.$queryRaw<UserWithPassword[]>`
           SELECT * FROM "User" WHERE email = ${credentials.email} LIMIT 1
         `;

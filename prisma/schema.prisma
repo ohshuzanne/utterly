@@ -17,17 +17,19 @@ model User {
   id              String    @id @default(cuid())
   email           String    @unique
   password        String
-  firstName       String?
-  lastName        String?
-  position        String?   // Job Title
+  firstName       String
+  lastName        String
+  position        String?
   company         String?
-  accountPurpose  String?   // What are you using this account for?
+  accountPurpose  String?
   experienceLevel String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  projects        Project[]
+  chatbots        Chatbot[]
   accounts        Account[]
   sessions        Session[]
-  chatbots        Chatbot[]
+  teams           TeamMember[]
 }
 
 model Account {
@@ -65,43 +67,105 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Chatbot {
+model Project {
   id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  name        String
-  apiEndpoint String
-  apiKey      String // Encrypted
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  testCases   TestCase[]
-  testResults TestResult[]
-}
-
-model TestCase {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
   name        String
   description String?
-  questions   Json     // Array of questions and expected answers
-  chatbot     Chatbot  @relation(fields: [chatbotId], references: [id], onDelete: Cascade)
-  chatbotId   String
-  results     TestResult[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  team        Team?    @relation(fields: [teamId], references: [id])
+  teamId      String?
+  workflows   Workflow[]
+  reports     Report[]
 }
 
-model TestResult {
-  id           String    @id @default(cuid())
-  createdAt    DateTime  @default(now())
-  testCase     TestCase  @relation(fields: [testCaseId], references: [id])
-  testCaseId   String
-  chatbot      Chatbot   @relation(fields: [chatbotId], references: [id])
-  chatbotId    String
-  results      Json      // Detailed test results including accuracy scores
-  status       String    // SUCCESS, FAILED, ERROR
+model Chatbot {
+  id          String     @id @default(cuid())
+  name        String
+  apiKey      String
+  apiEndpoint String
+  modelName   String
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String
+  workflows   Workflow[]
 }
 
-// You might also want to add these models later:
-// - TestWorkflow (for combining multiple test cases)
-// - CustomPrompts (for storing user-specific prompt templates)
-// - AnalyticsConfig (for storing user preferences on analytics)
+model Workflow {
+  id        String   @id @default(cuid())
+  name      String
+  items     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id])
+  projectId String
+  chatbot   Chatbot  @relation(fields: [chatbotId], references: [id])
+  chatbotId String
+  reports   Report[]
+}
+
+model Report {
+  id           String   @id @default(cuid())
+  name         String
+  overallScore Float
+  metrics      Json
+  details      Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  project      Project  @relation(fields: [projectId], references: [id])
+  projectId    String
+  workflow     Workflow @relation(fields: [workflowId], references: [id])
+  workflowId   String
+}
+
+model Team {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  members     TeamMember[]
+  projects    Project[]
+  posts       TeamPost[]
+}
+
+model TeamPost {
+  id        String       @id @default(cuid())
+  content   String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  author    TeamMember   @relation(fields: [authorId], references: [id])
+  authorId  String
+  team      Team         @relation(fields: [teamId], references: [id])
+  teamId    String
+  comments  TeamComment[]
+}
+
+model TeamComment {
+  id        String    @id @default(cuid())
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  author    TeamMember @relation(fields: [authorId], references: [id])
+  authorId  String
+  post      TeamPost  @relation(fields: [postId], references: [id])
+  postId    String
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  role      String   @default("member")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  teamId    String
+  posts     TeamPost[]
+  comments  TeamComment[]
+
+  @@unique([userId, teamId])
+}

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
-// Define public routes that don't require authentication
+
 const publicRoutes = [
   '/login', 
   '/register', 
@@ -15,7 +15,7 @@ const publicRoutes = [
 ];
 
 export async function middleware(request: NextRequest) {
-  // Check if the path is a public route
+//checking if path is a public route
   const isPublicRoute = publicRoutes.some(route => 
     request.nextUrl.pathname.startsWith(route)
   );
@@ -24,13 +24,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Get the session token
+  // retrieving the token from the request
   const token = await getToken({ 
     req: request, 
     secret: process.env.NEXTAUTH_SECRET 
   });
 
-  // If there's no token and the route requires authentication, redirect to login
+  // if there's no token, redirect to login page
   if (!token) {
     const url = new URL('/login', request.url);
     return NextResponse.redirect(url);

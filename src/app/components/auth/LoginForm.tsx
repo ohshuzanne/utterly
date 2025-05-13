@@ -22,7 +22,6 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement login logic
     console.log('Login attempt:', formData);
   };
 

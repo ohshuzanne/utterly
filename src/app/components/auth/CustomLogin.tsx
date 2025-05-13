@@ -40,7 +40,7 @@ export default function CustomLogin() {
         throw new Error(result.error || 'Failed to login');
       }
 
-      // Redirect to dashboard on success
+      // redirects to dashboard on success
       router.push('/dashboard');
       router.refresh();
     } catch (err) {

@@ -6,7 +6,7 @@ export default async function DashboardPage() {
   const session = await getSession();
   const user = session?.user;
 
-  // Fetch user details from Prisma
+  // fetch user details from the database
   const userDetails = user ? await prisma.user.findUnique({
     where: { id: user.id },
     select: { firstName: true }

@@ -8,7 +8,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { email, password } = body;
 
-    // Find user
+    // finds user
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Verify password
+    // verifies password
     const isValidPassword = await compare(password, user.password);
 
     if (!isValidPassword) {
@@ -30,17 +30,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate JWT token
+    // generates JWT token
     const token = sign(
       { userId: user.id, email: user.email },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
 
-    // Remove password from response
+    // removes password from response
     const { password: _, ...userWithoutPassword } = user;
 
-    // Set token cookie
+    // sets token cookie
     const response = NextResponse.json(
       { user: userWithoutPassword },
       { status: 200 }

@@ -63,7 +63,7 @@ export default function CustomSignUp() {
     }
 
     try {
-      // 1. Register the user
+      // regisers the user
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
@@ -78,7 +78,7 @@ export default function CustomSignUp() {
         throw new Error(data.error || 'Failed to create account');
       }
 
-      // 2. Sign in the user automatically
+      // 2signs the user in automatically
       const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
@@ -89,7 +89,7 @@ export default function CustomSignUp() {
         throw new Error(result.error || 'Failed to login after registration');
       }
 
-      // 3. Redirect to dashboard
+      // redirects the user to the dashboard upon success
       router.push('/dashboard');
       router.refresh();
     } catch (err) {

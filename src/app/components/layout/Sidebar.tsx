@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Workflow, BarChart2, MessageSquare, Settings } from 'lucide-react';
+import { Home, Workflow, BarChart2, Settings, Cloud, Users } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -12,9 +12,10 @@ import {
 
 const menuItems = [
   { icon: Home, label: 'Home', href: '/dashboard' },
+  { icon: Cloud, label: 'Chatbot', href: '/dashboard/chatbot' },
   { icon: Workflow, label: 'Workflow', href: '/dashboard/workflow' },
-  { icon: MessageSquare, label: 'Chat Tests', href: '/dashboard/tests' },
   { icon: BarChart2, label: 'Analytics', href: '/dashboard/analytics' },
+  { icon: Users, label: 'Teams', href: '/dashboard/teams' },
 ];
 
 export function Sidebar() {
@@ -66,7 +67,7 @@ export function Sidebar() {
         </nav>
 
         {/* Settings */}
-        <div className="mt-auto">
+        {/* <div className="mt-auto">
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
@@ -84,7 +85,7 @@ export function Sidebar() {
               <p>Settings</p>
             </TooltipContent>
           </Tooltip>
-        </div>
+        </div> */}
       </TooltipProvider>
     </div>
   );

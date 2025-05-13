@@ -1,6 +1,6 @@
 'use client';
 
-import { Info, Settings, LogOut } from 'lucide-react';
+import { Info, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { signOut } from "next-auth/react";
@@ -25,18 +25,11 @@ export function Header({ userName = 'User' }: HeaderProps) {
       </div>
       <div className="flex items-center gap-4">
         <Link
-          href="/about"
+          href="/dashboard/knowledge"
           className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
           <Info size={20} />
           <span>About</span>
-        </Link>
-        <Link
-          href="/settings"
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-        >
-          <Settings size={20} />
-          <span>Settings</span>
         </Link>
         <Button 
           onClick={handleLogout}
